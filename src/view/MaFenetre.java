@@ -19,12 +19,19 @@ import model.Piece;
 public class MaFenetre extends JFrame implements Observer {
     protected Piece modele = new Piece();
     protected JLabel[][] tab = new JLabel[8][8];
-    private ImageIcon icoRoi;
-    private static final int pxCase = 50;
+    private static final int pxCase = 80;
+
+    private ImageIcon kingIcon_black, queenIcon_black, bishopIcon_black, knightIcon_black, rookIcon_black, pawnIcon_black;
+    private ImageIcon kingIcon_white, queenIcon_white, bishopIcon_white, knightIcon_white, rookIcon_white, pawnIcon_white;
 
     @Override
     public void update(Observable o, Object arg) {
-        tab[modele.getX()][modele.getY()].setIcon(icoRoi);
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                tab[i][j].setIcon(null);
+            }
+        }
+        tab[modele.getX()][modele.getY()].setIcon(kingIcon_black);
     }
 
     public MaFenetre() {
@@ -71,7 +78,7 @@ public class MaFenetre extends JFrame implements Observer {
     }
 
     private void loadAllIcons() {
-        icoRoi = loadIcon("src/img/b_king.png");
+        kingIcon_black = loadIcon("src/img/b_king.png");
         System.out.println("Répertoire de travail : " + System.getProperty("user.dir"));
 
     }

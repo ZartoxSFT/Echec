@@ -31,11 +31,5 @@ public class Piece extends Observable{
         this.notifyObservers();
     }
 
-    public static void main(String[] args) {
-        MonModele modele = new MonModele();
-        modele.addObserver((o, arg) -> {
-            System.out.println("Observable updated: " + o + ", Argument: " + arg);
-        });
-    }
     
 }
