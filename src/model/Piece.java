@@ -5,6 +5,7 @@ import java.util.Observable;
 public class Piece extends Observable{
     private int x;
     private int y;
+    private boolean color; // true = blanc, false = noir
 
     public Piece() {
         this.x = 0;
@@ -17,6 +18,10 @@ public class Piece extends Observable{
 
     public int getY() {
         return this.y;
+    }
+
+    public boolean getColor() {
+        return this.color;
     }
 
     public void setX(int x) {
