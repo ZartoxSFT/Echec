@@ -1,22 +1,30 @@
 package view;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
+//import javafx.scene.image.Image;
+
 import javax.swing.JLabel;
 import java.awt.Color;
+import java.awt.Image;
 import java.awt.GridLayout;
+import java.awt.image.BufferedImage;
 import java.util.Observer;
 import java.util.Observable;
 
-import model.MonModele;
+import model.Piece;
 
 public class MaFenetre extends JFrame implements Observer {
-    protected MonModele modele = new MonModele();
+    protected Piece modele = new Piece();
     protected JLabel[][] tab = new JLabel[8][8];
+    private ImageIcon icoRoi;
+    private static final int pxCase = 50;
 
     @Override
     public void update(Observable o, Object arg) {
-        tab[modele.getX()][modele.getY()].setBackground(Color.RED);
+        tab[modele.getX()][modele.getY()].setIcon(icoRoi);
     }
 
     public MaFenetre() {
@@ -24,6 +32,7 @@ public class MaFenetre extends JFrame implements Observer {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(800, 800);
         this.setLocationRelativeTo(null);
+        loadAllIcons();
     }
 
     public static enum ChessColumn {
@@ -57,9 +66,35 @@ public class MaFenetre extends JFrame implements Observer {
                 });
             }
         }
-        this.revalidate(); // Utile quand on change le contenu de la fenêtre
+        this.revalidate();
         this.repaint();    
     }
+
+    private void loadAllIcons() {
+        icoRoi = loadIcon("src/img/b_king.png");
+        System.out.println("Répertoire de travail : " + System.getProperty("user.dir"));
+
+    }
+
+    private ImageIcon loadIcon(String urlIcone) {
+        BufferedImage image = null;
+        
+
+    java.io.File file = new java.io.File(urlIcone);
+    if (!file.exists()) {
+        System.err.println("Erreur : L'image " + urlIcone + " est introuvable.");
+        return null; 
+    }
+
+        ImageIcon icon = new ImageIcon(urlIcone);
+
+        Image img = icon.getImage().getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH);
+        ImageIcon resizedIcon = new ImageIcon(img);
+
+        return resizedIcon;
+    }
+
+
 
     public static void main(String[] args) {
         MaFenetre fenetre = new MaFenetre();

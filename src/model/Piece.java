@@ -2,11 +2,11 @@ package model;
 
 import java.util.Observable;
 
-public class MonModele extends Observable{
+public class Piece extends Observable{
     private int x;
     private int y;
 
-    public MonModele() {
+    public Piece() {
         this.x = 0;
         this.y = 0;
     }
