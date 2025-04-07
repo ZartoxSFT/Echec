@@ -1,11 +1,14 @@
 package view;
 
 import javax.swing.*;
+
+import controller.Core;
+
 import java.awt.*;
 import java.util.Observer;
 import java.util.Observable;
 
-import controller.Core;
+import model.Move;
 import model.Piece;
 
 public class MaFenetre extends JFrame implements Observer {
@@ -53,16 +56,17 @@ public class MaFenetre extends JFrame implements Observer {
         update(null, null);
     }
 
-    private void handleCaseClick(int x, int y) {
-        Piece selectedPiece = core.getPieceAt(x, y);
-        if (selectedPiece != null) {
-            System.out.println("Pièce sélectionnée à (" + x + ", " + y + ")");
-        } else {
-            System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
-            Piece pieceToMove = core.getPieces().get(0);
-            core.movePiece(pieceToMove, x, y);
-        }
+   private void handleCaseClick(int x, int y) {
+    Piece selectedPiece = core.getPieceAt(x, y);
+    if (selectedPiece != null) {
+        System.out.println("Pièce sélectionnée à (" + x + ", " + y + ")");
+    } else {
+        System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
+        Piece pieceToMove = core.getPieces().get(0); // Exemple : déplacer la première pièce
+        Move move = new Move(pieceToMove, x, y);
+        core.doMove(move); // Envoie le mouvement au thread
     }
+}
 
     private void loadAllIcons() {
         kingIcon_black = loadIcon("src/img/b_king.png");
@@ -94,6 +98,7 @@ public class MaFenetre extends JFrame implements Observer {
 
     public static void main(String[] args) {
         Core core = new Core();
+        core.initGame();
         MaFenetre fenetre = new MaFenetre(core);
         fenetre.build();
         fenetre.setVisible(true);
