@@ -21,6 +21,10 @@ public class MaFenetre extends JFrame implements Observer {
     protected JLabel[][] tab = new JLabel[8][8];
     private ImageIcon icoRoi;
     private static final int pxCase = 50;
+    private int selectedX = -1;
+    private int selectedY = -1;
+    private ImageIcon icoRoiBlanc;
+    private ImageIcon icoRoiNoir;
 
     @Override
     public void update(Observable o, Object arg) {
@@ -58,22 +62,49 @@ public class MaFenetre extends JFrame implements Observer {
                 label.addMouseListener(new java.awt.event.MouseAdapter() {
                     @Override
                     public void mouseClicked(java.awt.event.MouseEvent evt) {
-                        System.out.println("Case (" + jj + ", " + ii + ") cliquée");
-                        modele.setX(ii);
-                        modele.setY(jj);
-                        update(modele, label);
+                        handleCaseClick(ii, jj);
                     }
                 });
             }
         }
+        // Placer les pièces après avoir construit l'échiquier
+        placePiece(0, 4, icoRoiBlanc); // Roi blanc
+        placePiece(7, 4, icoRoiNoir);  // Roi noir
+    
         this.revalidate();
         this.repaint();    
     }
+    
+    // Nouvelle méthode pour gérer les clics sur les cases
+    private void handleCaseClick(int x, int y) {
+        System.out.println("Clic détecté sur la case : (" + y + ", " + x + ")");
+        if (selectedX == -1 && selectedY == -1) {
+            // Première case sélectionnée
+            if (tab[x][y].getIcon() != null) { // Vérifie qu'il y a une pièce sur la case
+                selectedX = x;
+                selectedY = y;
+                System.out.println("Case sélectionnée : (" + y + ", " + x + ")");
+            } else {
+                System.out.println("Aucune pièce sur cette case.");
+            }
+        } else {
+            // Deuxième case sélectionnée
+            System.out.println("Déplacement de la pièce de (" + selectedY + ", " + selectedX + ") à (" + y + ", " + x + ")");
+            tab[x][y].setIcon(tab[selectedX][selectedY].getIcon()); // Déplace l'icône
+            tab[selectedX][selectedY].setIcon(null); // Vide la case d'origine
+            selectedX = -1;
+            selectedY = -1; // Réinitialise la sélection
+        }
+    }
 
     private void loadAllIcons() {
-        icoRoi = loadIcon("src/img/b_king.png");
-        System.out.println("Répertoire de travail : " + System.getProperty("user.dir"));
+        icoRoiBlanc = loadIcon("src/img/w_king.png");
+        icoRoiNoir = loadIcon("src/img/b_king.png");
+        System.out.println("Icônes chargées.");
+    }
 
+    public void placePiece(int x, int y, ImageIcon pieceIcon) {
+        tab[x][y].setIcon(pieceIcon);
     }
 
     private ImageIcon loadIcon(String urlIcone) {

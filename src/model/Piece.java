@@ -32,7 +32,7 @@ public class Piece extends Observable{
     }
 
     public static void main(String[] args) {
-        MonModele modele = new MonModele();
+        Piece modele = new Piece();
         modele.addObserver((o, arg) -> {
             System.out.println("Observable updated: " + o + ", Argument: " + arg);
         });
