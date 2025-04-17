@@ -1,22 +1,18 @@
 package model.pieces;
 
 import model.Piece;
+import model.movement.DecoRook;
+import model.movement.DecoBishop;
 
 public class Queen extends Piece {
-    public Queen() {
-        super();
-    }
 
-    public boolean getColor() {
-        return this.color;
-    }
-
-    public void setColor(boolean color) {
+    public Queen(boolean color) {
+        super(new DecoRook(new DecoBishop(null))); // La reine combine les mouvements de la tour et du fou
         this.color = color;
-        this.setChanged();
-        this.notifyObservers();
+        setImg(); // Initialisation de l'image de la reine
     }
 
+    @Override
     public void setImg() {
         String path = "src/img/" + (this.color ? "w_" : "b_") + "queen.png";
         java.io.File file = new java.io.File(path);
@@ -25,6 +21,18 @@ public class Queen extends Piece {
             return;
         }
         this.img = path; // Stocke le chemin de l'image
+        this.setChanged();
+        this.notifyObservers();
+    }
+
+    @Override
+    public boolean getColor() {
+        return this.color;
+    }
+
+    @Override
+    public void setColor(boolean color) {
+        this.color = color;
         this.setChanged();
         this.notifyObservers();
     }

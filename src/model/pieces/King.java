@@ -1,22 +1,19 @@
 package model.pieces;
 
 import model.Piece;
+import model.movement.DecoKing;
+
 
 public class King extends Piece {
-    public King() {
-        super();
-    }
 
-    public boolean getColor() {
-        return this.color;
-    }
-
-    public void setColor(boolean color) {
+    public King(boolean color) {
+        // Utilisation de DecoKing pour définir les mouvements du roi
+        super(new DecoKing());  // Par exemple, DecoRook peut être un bon point de départ
         this.color = color;
-        this.setChanged();
-        this.notifyObservers();
+        setImg(); // Initialisation de l'image du roi
     }
 
+    @Override
     public void setImg() {
         String path = "src/img/" + (this.color ? "w_" : "b_") + "king.png";
         java.io.File file = new java.io.File(path);
@@ -29,5 +26,15 @@ public class King extends Piece {
         this.notifyObservers();
     }
 
+    @Override
+    public boolean getColor() {
+        return this.color;
+    }
 
+    @Override
+    public void setColor(boolean color) {
+        this.color = color;
+        this.setChanged();
+        this.notifyObservers();
+    }
 }

@@ -8,7 +8,7 @@ public class Case {
     public Case(int x, int y) {
         this.x = x;
         this.y = y;
-        this.piece = null; // Initially, the case is empty
+        this.piece = null; // Initialement, la case est vide
     }
 
     public int getX() {

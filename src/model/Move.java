@@ -36,4 +36,9 @@ public class Move {
     public void setY(int y) {
         this.y = y;
     }
+
+    public boolean isMoveValid(Case[][] board) {
+        return piece.getValidMoves(board).stream()
+                .anyMatch(move -> move[0] == this.x && move[1] == this.y);
+    }    
 }
