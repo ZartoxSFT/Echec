@@ -6,6 +6,7 @@ import java.util.Observable;
 
 import model.Move;
 import model.Piece;
+import model.pieces.King;
 
 public class Core extends Observable implements Runnable {
     private List<Piece> pieces = new ArrayList<>();
@@ -13,10 +14,37 @@ public class Core extends Observable implements Runnable {
     private boolean running = true;
 
     public Core() {
-        Piece king = new Piece();
-        king.setX(0);
-        king.setY(4);
-        pieces.add(king);
+        // Ajouter les rois
+        addPiece(new King(), 0, 4, false); // Roi noir
+        addPiece(new King(), 7, 4, true);  // Roi blanc
+    
+        // Ajouter les reines
+        addPiece(new model.pieces.Queen(), 0, 3, false); // Reine noire
+        addPiece(new model.pieces.Queen(), 7, 3, true);  // Reine blanche
+    
+        // Ajouter les tours
+        addPiece(new model.pieces.Rook(), 0, 0, false); // Tour noire gauche
+        addPiece(new model.pieces.Rook(), 0, 7, false); // Tour noire droite
+        addPiece(new model.pieces.Rook(), 7, 0, true);  // Tour blanche gauche
+        addPiece(new model.pieces.Rook(), 7, 7, true);  // Tour blanche droite
+    
+        // Ajouter les fous
+        addPiece(new model.pieces.Bishop(), 0, 2, false); // Fou noir gauche
+        addPiece(new model.pieces.Bishop(), 0, 5, false); // Fou noir droit
+        addPiece(new model.pieces.Bishop(), 7, 2, true);  // Fou blanc gauche
+        addPiece(new model.pieces.Bishop(), 7, 5, true);  // Fou blanc droit
+    
+        // Ajouter les cavaliers
+        addPiece(new model.pieces.Knight(), 0, 1, false); // Cavalier noir gauche
+        addPiece(new model.pieces.Knight(), 0, 6, false); // Cavalier noir droit
+        addPiece(new model.pieces.Knight(), 7, 1, true);  // Cavalier blanc gauche
+        addPiece(new model.pieces.Knight(), 7, 6, true);  // Cavalier blanc droit
+    
+        // Ajouter les pions
+        for (int i = 0; i < 8; i++) {
+            addPiece(new model.pieces.Pawn(), 1, i, false); // Pions noirs
+            addPiece(new model.pieces.Pawn(), 6, i, true);  // Pions blancs
+        }
     }
 
     public void initGame() {
@@ -47,6 +75,14 @@ public class Core extends Observable implements Runnable {
     public synchronized void doMove(Move move) {
         this.moveBuffer = move;
         this.notify();
+    }
+
+    private void addPiece(Piece piece, int x, int y, boolean color) {
+        piece.setX(x);
+        piece.setY(y);
+        piece.setColor(color);
+        piece.setImg();
+        pieces.add(piece);
     }
 
     @Override

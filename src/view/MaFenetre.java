@@ -15,7 +15,8 @@ public class MaFenetre extends JFrame implements Observer {
     private Core core;
     private JLabel[][] tab = new JLabel[8][8];
     private static final int pxCase = 80;
-    private ImageIcon kingIcon_black;
+    private Piece selectedPiece = null;
+
 
     public MaFenetre(Core core) {
         super("Ma fenêtre");
@@ -24,7 +25,6 @@ public class MaFenetre extends JFrame implements Observer {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(800, 800);
         this.setLocationRelativeTo(null);
-        loadAllIcons();
     }
 
     public void build() {
@@ -56,23 +56,33 @@ public class MaFenetre extends JFrame implements Observer {
         update(null, null);
     }
 
-   private void handleCaseClick(int x, int y) {
-    Piece selectedPiece = core.getPieceAt(x, y);
-    if (selectedPiece != null) {
-        System.out.println("Pièce sélectionnée à (" + x + ", " + y + ")");
-    } else {
-        System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
-        Piece pieceToMove = core.getPieces().get(0); // Exemple : déplacer la première pièce
-        Move move = new Move(pieceToMove, x, y);
-        core.doMove(move); // Envoie le mouvement au thread
+    private void handleCaseClick(int x, int y) {
+        // Si une pièce est déjà sélectionnée
+        if (selectedPiece != null) {
+            // Déplacez la pièce sélectionnée à la nouvelle position
+            System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
+            Move move = new Move(selectedPiece, x, y);
+            core.doMove(move); // Envoie le mouvement au thread
+            
+            // Réinitialiser la sélection après le déplacement
+            selectedPiece = null;  // Désélectionner la pièce après le déplacement
+        } else {
+            // Si aucune pièce n'est sélectionnée, on essaie de sélectionner une pièce
+            Piece piece = core.getPieceAt(x, y);
+            if (piece != null) {
+                System.out.println("Pièce sélectionnée à (" + x + ", " + y + ")");
+                selectedPiece = piece;  // Sélectionner la pièce
+            }
+        }
     }
-}
+    
+    
 
-    private void loadAllIcons() {
+    /*private void loadAllIcons() {
         kingIcon_black = loadIcon("src/img/b_king.png");
-    }
+    }*/
 
-    private ImageIcon loadIcon(String urlIcone) {
+    /*private ImageIcon loadIcon(String urlIcone) {
         java.io.File file = new java.io.File(urlIcone);
         if (!file.exists()) {
             System.err.println("Erreur : L'image " + urlIcone + " est introuvable.");
@@ -82,19 +92,29 @@ public class MaFenetre extends JFrame implements Observer {
         ImageIcon icon = new ImageIcon(urlIcone);
         Image img = icon.getImage().getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
-    }
+    }*/
 
     @Override
-    public void update(Observable o, Object arg) {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                tab[i][j].setIcon(null);
-            }
-        }
-        for (Piece piece : core.getPieces()) {
-            tab[piece.getX()][piece.getY()].setIcon(kingIcon_black);
+public void update(Observable o, Object arg) {
+    // Réinitialise toutes les cases
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            tab[i][j].setIcon(null);  // Enlève toutes les icônes
         }
     }
+
+    // Affiche les pièces sur leurs positions
+    for (Piece piece : core.getPieces()) {
+        System.out.println("Piece: " + piece.getClass().getSimpleName() + " at (" + piece.getX() + ", " + piece.getY() + ")");
+        if (piece.getImg() != null) {
+            ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
+                .getImage()
+                .getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH));
+            tab[piece.getX()][piece.getY()].setIcon(icon);  // Met à jour l'icône à la nouvelle position
+        }
+    }
+}
+
 
     public static void main(String[] args) {
         Core core = new Core();
