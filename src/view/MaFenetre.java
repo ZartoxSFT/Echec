@@ -37,9 +37,9 @@ public class MaFenetre extends JFrame implements Observer {
                 label.setHorizontalAlignment(SwingConstants.CENTER);
                 label.setVerticalAlignment(SwingConstants.CENTER); 
                 if ((i + j) % 2 == 0) {
-                    label.setBackground(Color.WHITE);
+                    label.setBackground(new Color(245, 245, 220));
                 } else {
-                    label.setBackground(Color.BLACK);
+                    label.setBackground(new Color(120, 59, 19));
                 }
                 panel.add(label);
                 tab[i][j] = label;
