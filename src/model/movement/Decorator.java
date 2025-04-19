@@ -1,8 +1,8 @@
 package model.movement;
 
 import model.Piece;
-import model.Case;
 import java.util.List;
+import controller.Plateau;
 
 public class Decorator implements MovementStrategy {
 
@@ -14,8 +14,8 @@ public class Decorator implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Case[][] board) {
+    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
         // Appelle la méthode getValidMoves de la stratégie de mouvement encapsulée
-        return wrapped.getValidMoves(piece, x, y, board);
+        return wrapped.getValidMoves(piece, x, y, plateau);
     }
 }

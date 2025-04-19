@@ -2,6 +2,7 @@ package model.movement;
 
 import model.Piece;
 import model.Case;
+import controller.Plateau;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -13,44 +14,46 @@ public class DecoPawn implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Case[][] board) {
+    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
         int direction = piece.getColor() ? -1 : 1; // BLANC monte (-1), NOIR descend (+1)
 
+        Case currentCase = plateau.getCase(x, y);
+        if (currentCase == null) return moves;
+
         // 1 case en avant
-        if (isInBounds(x + direction, y) && board[x + direction][y].getPiece() == null) {
+        Case forwardCase = plateau.getCase(x + direction, y);
+        if (forwardCase != null && forwardCase.getPiece() == null) {
             moves.add(new int[]{x + direction, y});
 
             // 2 cases en avant si premier mouvement
             if ((piece.getColor() && x == 6) || (!piece.getColor() && x == 1)) {
-                if (board[x + 2 * direction][y].getPiece() == null) {
+                Case doubleForwardCase = plateau.getCase(x + 2 * direction, y);
+                if (doubleForwardCase != null && doubleForwardCase.getPiece() == null) {
                     moves.add(new int[]{x + 2 * direction, y});
                 }
             }
         }
 
         // Capture en diagonale gauche
-        if (isInBounds(x + direction, y - 1) && board[x + direction][y - 1].getPiece() != null &&
-            board[x + direction][y - 1].getPiece().getColor() != piece.getColor()) {
+        Case leftCaptureCase = plateau.getCase(x + direction, y - 1);
+        if (leftCaptureCase != null && leftCaptureCase.getPiece() != null &&
+            leftCaptureCase.getPiece().getColor() != piece.getColor()) {
             moves.add(new int[]{x + direction, y - 1});
         }
 
         // Capture en diagonale droite
-        if (isInBounds(x + direction, y + 1) && board[x + direction][y + 1].getPiece() != null &&
-            board[x + direction][y + 1].getPiece().getColor() != piece.getColor()) {
+        Case rightCaptureCase = plateau.getCase(x + direction, y + 1);
+        if (rightCaptureCase != null && rightCaptureCase.getPiece() != null &&
+            rightCaptureCase.getPiece().getColor() != piece.getColor()) {
             moves.add(new int[]{x + direction, y + 1});
         }
 
         // Appeler aussi le wrapped si jamais on veut ajouter des mouvements spéciaux (ex : promotion)
         if (wrapped != null) {
-            moves.addAll(wrapped.getValidMoves(piece, x, y, board));
+            moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));
         }
 
         return moves;
-    }
-
-    // Helper pour vérifier si on reste dans l'échiquier
-    private boolean isInBounds(int x, int y) {
-        return x >= 0 && x < 8 && y >= 0 && y < 8;
     }
 }

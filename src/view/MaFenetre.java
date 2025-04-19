@@ -93,27 +93,27 @@ public class MaFenetre extends JFrame implements Observer {
         Image img = icon.getImage().getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
     }*/
-
+    
     @Override
-public void update(Observable o, Object arg) {
-    // Réinitialise toutes les cases
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            tab[i][j].setIcon(null);  // Enlève toutes les icônes
+    public void update(Observable o, Object arg) {
+        // Réinitialise toutes les cases
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                tab[i][j].setIcon(null);  // Enlève toutes les icônes
+            }
         }
-    }
 
-    // Affiche les pièces sur leurs positions
-    for (Piece piece : core.getPieces()) {
-        System.out.println("Piece: " + piece.getClass().getSimpleName() + " at (" + piece.getX() + ", " + piece.getY() + ")");
-        if (piece.getImg() != null) {
-            ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
+        // Affiche les pièces sur leurs positions
+        for (Piece piece : core.getPieces()) {
+            //System.out.println("Piece: " + piece.getClass().getSimpleName() + " at (" + piece.getX() + ", " + piece.getY() + ")"); // Debug
+            if (piece.getImg() != null) {
+                ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
                 .getImage()
                 .getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH));
-            tab[piece.getX()][piece.getY()].setIcon(icon);  // Met à jour l'icône à la nouvelle position
+                tab[piece.getX()][piece.getY()].setIcon(icon);  // Met à jour l'icône à la nouvelle position
+            }
         }
     }
-}
 
 
     public static void main(String[] args) {

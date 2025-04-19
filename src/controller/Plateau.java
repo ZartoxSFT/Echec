@@ -39,6 +39,16 @@ public class Plateau {
         }
     }
 
+    public Case getCase(int x, int y) {
+        for (Case c : caseMap.keySet()) {
+            Point p = caseMap.get(c);
+            if (p.x == x && p.y == y) {
+                return c;
+            }
+        }
+        return null;
+    }
+
     public Case getCaseRelative(Case source, Direction d) {
         Point p = caseMap.get(source);
         if (p == null) return null;

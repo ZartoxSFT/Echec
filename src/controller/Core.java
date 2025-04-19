@@ -8,16 +8,17 @@ import model.Move;
 import model.Piece;
 import model.pieces.King;
 import model.Case; // Ajout de l'import pour Case
+import controller.Plateau;
 
 public class Core extends Observable implements Runnable {
     private List<Piece> pieces = new ArrayList<>();
     private Move moveBuffer = null;
     private boolean running = true;
-    private Case[][] board = new Case[8][8]; // Plateau d'échecs (8x8)
+    private Plateau plateau; // Ajout de l'attribut Plateau
 
     public Core() {
         // Initialisation du plateau
-        initializeBoard();
+        this.plateau = new Plateau();
 
         // Ajouter les rois
         addPiece(new King(true), 7, 4, true);  // Roi blanc
@@ -48,14 +49,6 @@ public class Core extends Observable implements Runnable {
         }
     }
 
-    private void initializeBoard() {
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                board[i][j] = new Case(i, j); // Initialisation de chaque case
-            }
-        }
-    }
-
     public void initGame() {
         Thread gameThread = new Thread(this);
         gameThread.start();
@@ -69,21 +62,16 @@ public class Core extends Observable implements Runnable {
         int oldX = piece.getX();
         int oldY = piece.getY();
     
-        // 1. Retirer la pièce de l'ancienne case
-        board[oldX][oldY].setPiece(null);
+        plateau.getCase(oldX, oldY).setPiece(null);
     
-        // 2. Déplacer la pièce
         piece.setX(newX);
         piece.setY(newY);
     
-        // 3. Mettre la pièce sur la nouvelle case
-        board[newX][newY].setPiece(piece);
+        plateau.getCase(newX, newY).setPiece(piece);
     
-        // 4. Rafraîchir l'interface
         this.setChanged();
         this.notifyObservers();
     }
-    
 
     public Piece getPieceAt(int x, int y) {
         for (Piece piece : pieces) {
@@ -105,7 +93,7 @@ public class Core extends Observable implements Runnable {
         piece.setColor(color);
         piece.setImg();
         pieces.add(piece);
-        board[x][y].setPiece(piece); // Assigner la pièce à la case correspondante
+        plateau.getCase(x, y).setPiece(piece); // Ajout de la pièce à la case correspondante
     }
 
     @Override
@@ -125,7 +113,7 @@ public class Core extends Observable implements Runnable {
                 int y = moveBuffer.getY();
                 
                 // Vérifier si le mouvement est valide
-                if (moveBuffer.isMoveValid(board)) {
+                if (moveBuffer.isMoveValid(plateau)) {
                     movePiece(piece, x, y);
                 }
 

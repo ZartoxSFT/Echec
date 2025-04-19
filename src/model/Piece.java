@@ -4,6 +4,8 @@ import model.movement.MovementStrategy;
 import java.util.List;
 import java.util.Observable;
 
+import controller.Plateau;
+
 public class Piece extends Observable {
     private int x;
     private int y;
@@ -18,8 +20,8 @@ public class Piece extends Observable {
     }
 
     // Getter pour obtenir les déplacements valides
-    public List<int[]> getValidMoves(Case[][] board) {
-        return movementStrategy.getValidMoves(this, x, y, board);
+    public List<int[]> getValidMoves(Plateau plateau) {
+        return movementStrategy.getValidMoves(this, x, y, plateau);
     }
 
     public int getX() {

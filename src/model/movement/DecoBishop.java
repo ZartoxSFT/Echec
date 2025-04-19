@@ -2,6 +2,7 @@ package model.movement;
 
 import model.Piece;
 import model.Case;
+import controller.Plateau;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -13,30 +14,37 @@ public class DecoBishop implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Case[][] board) {
+    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
 
         // Déplacements diagonaux
-        int[] directions = {-1, 1}; // Pour les déplacements en diagonale
+        Plateau.Direction[] directions = {
+            Plateau.Direction.UP_LEFT, Plateau.Direction.UP_RIGHT,
+            Plateau.Direction.DOWN_LEFT, Plateau.Direction.DOWN_RIGHT
+        };
 
-        // Diagonale haut-gauche et bas-droit
-        for (int dx : directions) {
-            for (int dy : directions) {
-                for (int i = 1; i < 8; i++) {
-                    int newX = x + i * dx;
-                    int newY = y + i * dy;
-                    if (newX < 0 || newX >= 8 || newY < 0 || newY >= 8) break;
+        Case currentCase = plateau.getCase(x, y);
+        if (currentCase == null) return moves;
 
-                    Piece targetPiece = board[newX][newY].getPiece();
-                    if (targetPiece != null && targetPiece.getColor() == piece.getColor()) break;
-                    moves.add(new int[]{newX, newY});
-                    if (targetPiece != null) break; // Si la case est occupée par une pièce, on arrête
+        for (Plateau.Direction direction : directions) {
+            Case nextCase = plateau.getCaseRelative(currentCase, direction);
+
+            while (nextCase != null) {
+                Piece targetPiece = nextCase.getPiece();
+                if (targetPiece != null) {
+                    if (targetPiece.getColor() != piece.getColor()) {
+                        moves.add(new int[]{nextCase.getX(), nextCase.getY()});
+                    }
+                    break; // Arrête si une pièce bloque le chemin
                 }
+                moves.add(new int[]{nextCase.getX(), nextCase.getY()});
+                nextCase = plateau.getCaseRelative(nextCase, direction);
             }
         }
 
+        // Ajoute les mouvements de la stratégie décorée, si elle existe
         if (wrapped != null) {
-            moves.addAll(wrapped.getValidMoves(piece, x, y, board));
+            moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));
         }
 
         return moves;

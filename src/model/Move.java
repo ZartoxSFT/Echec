@@ -1,5 +1,7 @@
 package model;
 
+import controller.Plateau;
+
 public class Move {
     private Piece piece;
     private int x;
@@ -37,8 +39,8 @@ public class Move {
         this.y = y;
     }
 
-    public boolean isMoveValid(Case[][] board) {
-        return piece.getValidMoves(board).stream()
-                .anyMatch(move -> move[0] == this.x && move[1] == this.y);
+    public boolean isMoveValid(Plateau plateau) {
+        return piece.getValidMoves(plateau).stream()
+        .anyMatch(move -> move[0] == this.x && move[1] == this.y);
     }    
 }
