@@ -52,11 +52,10 @@ public class Plateau {
     public Case getCaseRelative(Case source, Direction d) {
         Point p = caseMap.get(source);
         if (p == null) return null;
-
+    
         int newX = p.x + d.dx;
         int newY = p.y + d.dy;
-
-        Case relativeCase = new Case(newX, newY);
-        return caseMap.containsKey(relativeCase) ? relativeCase : null;
-    }
+    
+        return getCase(newX, newY); // Utilise directement la méthode getCase
+    }      
 }
