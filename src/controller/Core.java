@@ -65,12 +65,25 @@ public class Core extends Observable implements Runnable {
         return pieces;
     }
 
-    public void movePiece(Piece piece, int x, int y) {
-        piece.setX(x);
-        piece.setY(y);
+    public void movePiece(Piece piece, int newX, int newY) {
+        int oldX = piece.getX();
+        int oldY = piece.getY();
+    
+        // 1. Retirer la pièce de l'ancienne case
+        board[oldX][oldY].setPiece(null);
+    
+        // 2. Déplacer la pièce
+        piece.setX(newX);
+        piece.setY(newY);
+    
+        // 3. Mettre la pièce sur la nouvelle case
+        board[newX][newY].setPiece(piece);
+    
+        // 4. Rafraîchir l'interface
         this.setChanged();
         this.notifyObservers();
     }
+    
 
     public Piece getPieceAt(int x, int y) {
         for (Piece piece : pieces) {
