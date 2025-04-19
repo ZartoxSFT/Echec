@@ -16,13 +16,17 @@ public class DecoQueen implements MovementStrategy {
     public List<int[]> getValidMoves(Piece piece, int x, int y, Case[][] board) {
         List<int[]> moves = new ArrayList<>();
 
-        // Utilisation de DecoRook pour les déplacements verticaux et horizontaux
-        DecoRook rookDecorator = new DecoRook(null);
-        moves.addAll(rookDecorator.getValidMoves(piece, x, y, board));
+        DecoRook rookMove = new DecoRook(null);
+        List<int[]> rookMoves = rookMove.getValidMoves(piece, x, y, board);
+        moves.addAll(rookMoves);
 
-        // Utilisation de DecoBishop pour les déplacements diagonaux
-        DecoBishop bishopDecorator = new DecoBishop(null);
-        moves.addAll(bishopDecorator.getValidMoves(piece, x, y, board));
+        DecoBishop bishopMove = new DecoBishop(null);
+        List<int[]> bishopMoves = bishopMove.getValidMoves(piece, x, y, board);
+        moves.addAll(bishopMoves);
+
+        if (wrapped != null) {
+            moves.addAll(wrapped.getValidMoves(piece, x, y, board));
+        }
 
         return moves;
     }

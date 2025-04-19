@@ -42,10 +42,10 @@ public class Core extends Observable implements Runnable {
         addPiece(new model.pieces.Knight(false), 0, 1, false); // Cavalier noir gauche
         addPiece(new model.pieces.Knight(false), 0, 6, false); // Cavalier noir droit
 
-        /*for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < 8; i++) {
             addPiece(new model.pieces.Pawn(true), 6, i, true);  // Pions blancs
             addPiece(new model.pieces.Pawn(false), 1, i, false); // Pions noirs
-        }*/
+        }
     }
 
     private void initializeBoard() {

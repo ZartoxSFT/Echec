@@ -1,3 +1,5 @@
+package controller;
+
 import java.awt.Point;
 import java.util.*;
 import model.Case;

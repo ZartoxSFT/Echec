@@ -45,6 +45,10 @@ public class DecoRook implements MovementStrategy {
             }
         }
 
+        if (wrapped != null) {
+            moves.addAll(wrapped.getValidMoves(piece, x, y, board));
+        }
+
         return moves;
     }
 }
