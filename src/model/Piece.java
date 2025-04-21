@@ -1,8 +1,11 @@
 package model;
 
 import model.movement.MovementStrategy;
+import java.awt.Image;
 import java.util.List;
 import java.util.Observable;
+import java.io.File;
+import javax.imageio.ImageIO;
 
 import controller.Plateau;
 
@@ -54,13 +57,24 @@ public class Piece extends Observable {
         this.notifyObservers();
     }
 
+    // Charge l'image à partir du chemin du fichier
     protected void loadAllIcons(String urlIcone) {
-        java.io.File file = new java.io.File(urlIcone);
+        File file = new File(urlIcone);
         if (!file.exists()) {
             System.err.println("Erreur : L'image " + urlIcone + " est introuvable.");
             return;
         }
         this.img = urlIcone;
+    }
+
+    // Méthode pour obtenir l'image en tant qu'objet Image
+    public Image getImage() {
+        try {
+            return ImageIO.read(new File(this.img));
+        } catch (Exception e) {
+            System.err.println("Erreur lors du chargement de l'image : " + e.getMessage());
+            return null;
+        }
     }
 
     protected void initialisePosition(int x, int y) {

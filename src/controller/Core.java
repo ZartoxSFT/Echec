@@ -169,6 +169,10 @@ public class Core extends Observable implements Runnable {
         plateau.getCase(x, y).setPiece(piece); // Ajout de la pièce à la case correspondante
     }
 
+    public boolean isWhiteTurn() {
+        return plateau.isCurrentPlayerWhite();
+    }    
+
     @Override
     public void run() {
         while (running) {
