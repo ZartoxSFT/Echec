@@ -127,7 +127,7 @@ public class Core extends Observable implements Runnable {
         // Gestion de la promotion
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newX == 0) || (!piece.getColor() && newX == 7)) {
-                plateau.promotePawn(piece);
+                plateau.promotePawn(piece, pieces);
             }
         }
     

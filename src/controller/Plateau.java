@@ -79,7 +79,7 @@ public class Plateau {
     }
     
     
-    protected void promotePawn(Piece pawn) {
+    protected void promotePawn(Piece pawn, List<Piece> pieces) {
         System.out.println("Promotion du pion !");
     
         // Vérifier que le pion est à promouvoir
@@ -134,7 +134,12 @@ public class Plateau {
         newPiece.setX(x);
         newPiece.setY(y);
         Case pawnCase = getCase(x, y);
-        pawnCase.setPiece(newPiece);
+    
+        if (pawnCase != null) {
+            pawnCase.setPiece(newPiece); // Met à jour la case
+        } else {
+            System.err.println("Erreur : la case du pion est introuvable !");
+        }
     
         // Mettre à jour la liste des pièces
         pieces.remove(pawn);
@@ -143,7 +148,10 @@ public class Plateau {
         // Marquer comme ayant bougé
         hasMoved.put(newPiece, true);
     
+        // Debugging pour vérifier les mises à jour
         System.out.println("Promotion : " + options[choiceIndex] + " en (" + x + "," + y + ")");
+        System.out.println("Liste des pièces mise à jour : " + pieces);
+        System.out.println("Case mise à jour : " + pawnCase.getPiece());
     }
     
     public boolean isKingInCheck(boolean whiteKing) {
