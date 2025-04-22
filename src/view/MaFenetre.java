@@ -109,27 +109,26 @@ public class MaFenetre extends JFrame implements Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-        // Réinitialise toutes les cases
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                tab[i][j].setIcon(null);
-            }
+    // Réinitialise toutes les cases
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            tab[i][j].setIcon(null);
         }
-
-        // Met à jour les pièces sur l'échiquier
-        for (Piece piece : core.getPieces()) {
-            if (piece.getImg() != null) {
-                ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
-                        .getImage()
-                        .getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH));
-                tab[piece.getX()][piece.getY()].setIcon(icon);
-            }
-        }
-
-        // Mettre à jour le tour de jeu
-        labelTour.setText("Tour : " + (core.isWhiteTurn() ? "Joueur 1" : "Joueur 2"));
-
     }
+
+    // Met à jour les pièces sur l'échiquier
+    for (Piece piece : core.getPlateau().getPieces()) { // Mise à jour ici
+        if (piece.getImg() != null) {
+            ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
+                    .getImage()
+                    .getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH));
+            tab[piece.getX()][piece.getY()].setIcon(icon);
+        }
+    }
+
+    // Mettre à jour le tour de jeu
+    labelTour.setText("Tour : " + (core.isWhiteTurn() ? "Joueur 1" : "Joueur 2"));
+}
 
     public static void main(String[] args) {
         Core core = new Core();

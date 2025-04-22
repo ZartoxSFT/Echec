@@ -34,10 +34,49 @@ public class Plateau {
 
     public Plateau() {
         pieces = new ArrayList<>();
-        initializeBoard();
+        initBoard();
     }
 
-    private void initializeBoard() {
+    public void initPieces() {
+        // Ajouter les rois
+        addPiece(new model.pieces.King(true), 7, 4, true);  // Roi blanc
+        addPiece(new model.pieces.King(false), 0, 4, false); // Roi noir
+    
+        // Ajouter les autres pièces (reines, tours, fous, cavaliers, pions)
+        addPiece(new model.pieces.Queen(true), 7, 3, true);  // Reine blanche
+        addPiece(new model.pieces.Queen(false), 0, 3, false); // Reine noire
+    
+        addPiece(new model.pieces.Rook(true), 7, 0, true);  // Tour blanche gauche
+        addPiece(new model.pieces.Rook(true), 7, 7, true);  // Tour blanche droite
+        addPiece(new model.pieces.Rook(false), 0, 0, false); // Tour noire gauche
+        addPiece(new model.pieces.Rook(false), 0, 7, false); // Tour noire droite
+    
+        addPiece(new model.pieces.Bishop(true), 7, 2, true);  // Fou blanc gauche
+        addPiece(new model.pieces.Bishop(true), 7, 5, true);  // Fou blanc droit
+        addPiece(new model.pieces.Bishop(false), 0, 2, false); // Fou noir gauche
+        addPiece(new model.pieces.Bishop(false), 0, 5, false); // Fou noir droit
+    
+        addPiece(new model.pieces.Knight(true), 7, 1, true);  // Cavalier blanc gauche
+        addPiece(new model.pieces.Knight(true), 7, 6, true);  // Cavalier blanc droit
+        addPiece(new model.pieces.Knight(false), 0, 1, false); // Cavalier noir gauche
+        addPiece(new model.pieces.Knight(false), 0, 6, false); // Cavalier noir droit
+    
+        for (int i = 0; i < 8; i++) {
+            addPiece(new model.pieces.Pawn(true), 6, i, true);  // Pions blancs
+            addPiece(new model.pieces.Pawn(false), 1, i, false); // Pions noirs
+        }
+    }
+    
+    private void addPiece(Piece piece, int x, int y, boolean color) {
+        piece.setX(x);
+        piece.setY(y);
+        piece.setColor(color);
+        piece.setImg();
+        pieces.add(piece);
+        getCase(x, y).setPiece(piece); // Ajout de la pièce à la case correspondante
+    }
+
+    private void initBoard() {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 Case c = new Case(i, j);
@@ -76,6 +115,10 @@ public class Plateau {
 
     public Map<Piece, Boolean> getHasMoved() {
         return hasMoved;
+    }
+
+    public List<Piece> getPieces() {
+        return pieces;
     }
     
     
