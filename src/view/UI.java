@@ -11,7 +11,7 @@ import controller.Core;
 import model.Move;
 import model.Piece;
 
-public class MaFenetre extends JFrame implements Observer {
+public class UI extends JFrame implements Observer {
     private Core core;
     private JLabel[][] tab = new JLabel[8][8];
     private JLabel labelTour = new JLabel("Tour : Blancs", SwingConstants.CENTER);
@@ -19,7 +19,7 @@ public class MaFenetre extends JFrame implements Observer {
     private static final int pxCase = 80;
     private Piece selectedPiece = null;
 
-    public MaFenetre(Core core) {
+    public UI(Core core) {
         super("Échiquier");
         this.core = core;
         this.core.addObserver(this);
@@ -84,7 +84,6 @@ public class MaFenetre extends JFrame implements Observer {
             }
         }
 
-        // Zone du bas : pièces capturées
         capturedPiecesPanel.setPreferredSize(new Dimension(1000, 100));
         capturedPiecesPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         this.add(capturedPiecesPanel, BorderLayout.SOUTH);
@@ -133,7 +132,7 @@ public class MaFenetre extends JFrame implements Observer {
     public static void main(String[] args) {
         Core core = new Core();
         core.initGame();
-        MaFenetre fenetre = new MaFenetre(core);
+        UI fenetre = new UI(core);
         fenetre.build();
         fenetre.setVisible(true);
     }

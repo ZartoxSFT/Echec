@@ -7,17 +7,17 @@ import java.util.Observable;
 import model.Move;
 import model.Piece;
 import model.pieces.King;
-import model.Case; // Ajout de l'import pour Case
+import model.Case;
 import controller.Plateau;
 
 public class Core extends Observable implements Runnable {
     private Move moveBuffer = null;
     private boolean running = true;
-    private Plateau plateau; // Ajout de l'attribut Plateau
+    private Plateau plateau; 
 
     public Core() {
         this.plateau = new Plateau();
-        plateau.initPieces(); // Initialisation des pièces via Plateau
+        plateau.initPieces();
     }
 
     public void initGame() {
@@ -43,7 +43,7 @@ public class Core extends Observable implements Runnable {
             return;
         }
     
-        // Gestion du roque
+
         if (piece instanceof model.pieces.King && Math.abs(newY - oldY) == 2) {
             boolean isKingSide = newY > oldY;
             int rookOldY = isKingSide ? 7 : 0;
@@ -54,36 +54,36 @@ public class Core extends Observable implements Runnable {
     
             Piece rook = rookOldCase.getPiece();
             if (rook != null && rook instanceof model.pieces.Rook) {
-                // Déplacer la tour
+                
                 rookOldCase.setPiece(null);
                 rookNewCase.setPiece(rook);
                 rook.setX(oldX);
                 rook.setY(rookNewY);
     
-                // Marquer la tour comme ayant bougé
+                
                 plateau.getHasMoved().put(rook, true);
             }
         }
     
-        // Simuler le mouvement
-        Piece capturedPiece = newCase.getPiece(); // Sauvegarder la pièce capturée (si elle existe)
+        
+        Piece capturedPiece = newCase.getPiece(); 
         oldCase.setPiece(null);
         newCase.setPiece(piece);
         piece.setX(newX);
         piece.setY(newY);
     
-        // Vérifier si le roi reste en échec après ce mouvement
+        
         if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {
-            // Annuler le mouvement
+            
             System.out.println("Mouvement invalide : le roi reste en échec !");
-            newCase.setPiece(capturedPiece); // Restaurer la pièce capturée
+            newCase.setPiece(capturedPiece); 
             oldCase.setPiece(piece);
             piece.setX(oldX);
             piece.setY(oldY);
             return;
         }
     
-        // Si une pièce ennemie est capturée, la retirer de la liste
+       
         if (capturedPiece != null) {
             System.out.println("Capture de " + capturedPiece.getClass().getSimpleName() + " en (" + newX + "," + newY + ")");
             plateau.getPieces().remove(capturedPiece);
@@ -91,14 +91,14 @@ public class Core extends Observable implements Runnable {
     
         plateau.getHasMoved().put(piece, true);
     
-        // Gestion de la promotion
+        
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newX == 0) || (!piece.getColor() && newX == 7)) {
                 plateau.promotePawn(piece, plateau.getPieces());
             }
         }
     
-        // Gestion échec/mat
+       
         if (plateau.isKingInCheck(!plateau.isCurrentPlayerWhite())) {
             if (plateau.isCheckMate(!plateau.isCurrentPlayerWhite())) {
                 System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");
@@ -148,7 +148,6 @@ public class Core extends Observable implements Runnable {
                 int x = moveBuffer.getX();
                 int y = moveBuffer.getY();
                 
-                // Vérifier si le mouvement est valide
                 System.out.println("Tentative de mouvement : " + piece.getClass().getSimpleName() + " vers (" + x + "," + y + ")");
                 System.out.println("Mouvements possibles : ");
                 for (int[] move : piece.getValidMoves(plateau)) {
