@@ -17,6 +17,7 @@ public class Plateau {
     private Map<Case, Point> caseMap = new HashMap<>();
     private boolean currentPlayerIsWhite = true; // Pour alterner les coups
     private Map<Piece, Boolean> hasMoved = new HashMap<>(); // Pour roque
+    private Piece enPassantTarget = null; // Cible pour la capture en passant
 
 
     public enum Direction {
@@ -195,6 +196,18 @@ public class Plateau {
         System.out.println("Promotion : " + options[choiceIndex] + " en (" + x + "," + y + ")");
         System.out.println("Liste des pièces mise à jour : " + pieces);
         System.out.println("Case mise à jour : " + pawnCase.getPiece());
+    }
+
+    public void updateEnPassantTarget(Piece pawn, int startX, int endX) {
+        if (pawn instanceof model.pieces.Pawn && Math.abs(startX - endX) == 2) {
+            enPassantTarget = pawn; // Marquer le pion comme cible
+        } else {
+            enPassantTarget = null; // Réinitialiser si ce n'est pas un mouvement de deux cases
+        }
+    }
+    
+    public Piece getEnPassantTarget() {
+        return enPassantTarget;
     }
     
     public boolean isKingInCheck(boolean whiteKing) {

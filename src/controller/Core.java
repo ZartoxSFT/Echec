@@ -43,7 +43,7 @@ public class Core extends Observable implements Runnable {
             return;
         }
     
-
+        // Gestion du roque
         if (piece instanceof model.pieces.King && Math.abs(newY - oldY) == 2) {
             boolean isKingSide = newY > oldY;
             int rookOldY = isKingSide ? 7 : 0;
@@ -54,27 +54,46 @@ public class Core extends Observable implements Runnable {
     
             Piece rook = rookOldCase.getPiece();
             if (rook != null && rook instanceof model.pieces.Rook) {
-                
                 rookOldCase.setPiece(null);
                 rookNewCase.setPiece(rook);
                 rook.setX(oldX);
                 rook.setY(rookNewY);
-    
-                
                 plateau.getHasMoved().put(rook, true);
             }
         }
     
-        
+        // Gestion de la capture en passant
+        if (piece instanceof model.pieces.Pawn) {
+            // Vérifier si le mouvement est une capture en passant
+            if (newCase.getPiece() == null && Math.abs(newY - oldY) == 1 && Math.abs(newX - oldX) == 1) {
+                Piece enPassantTarget = plateau.getEnPassantTarget();
+                if (enPassantTarget != null && enPassantTarget.getX() == oldX && enPassantTarget.getY() == newY) {
+                    // Vérifier que le pion cible est bien celui qui a avancé de deux cases
+                    Case capturedPawnCase = plateau.getCase(enPassantTarget.getX(), enPassantTarget.getY());
+                    if (capturedPawnCase != null && capturedPawnCase.getPiece() == enPassantTarget) {
+                        // Retirer le pion capturé
+                        capturedPawnCase.setPiece(null);
+                        plateau.getPieces().remove(enPassantTarget);
+                        System.out.println("Capture en passant !");
+                    }
+                }
+            }
+
+            // Mettre à jour la cible en passant après le déplacement
+            if (Math.abs(newX - oldX) == 2) {
+                plateau.updateEnPassantTarget(piece, oldX, newX);
+            } else {
+                plateau.updateEnPassantTarget(null, 0, 0); // Réinitialiser si ce n'est pas un mouvement de deux cases
+            }
+        }
+    
         Piece capturedPiece = newCase.getPiece(); 
         oldCase.setPiece(null);
         newCase.setPiece(piece);
         piece.setX(newX);
         piece.setY(newY);
     
-        
         if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {
-            
             System.out.println("Mouvement invalide : le roi reste en échec !");
             newCase.setPiece(capturedPiece); 
             oldCase.setPiece(piece);
@@ -83,7 +102,6 @@ public class Core extends Observable implements Runnable {
             return;
         }
     
-       
         if (capturedPiece != null) {
             System.out.println("Capture de " + capturedPiece.getClass().getSimpleName() + " en (" + newX + "," + newY + ")");
             plateau.getPieces().remove(capturedPiece);
@@ -91,14 +109,14 @@ public class Core extends Observable implements Runnable {
     
         plateau.getHasMoved().put(piece, true);
     
-        
+        // Gestion de la promotion
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newX == 0) || (!piece.getColor() && newX == 7)) {
                 plateau.promotePawn(piece, plateau.getPieces());
             }
         }
     
-       
+        // Gestion échec/mat
         if (plateau.isKingInCheck(!plateau.isCurrentPlayerWhite())) {
             if (plateau.isCheckMate(!plateau.isCurrentPlayerWhite())) {
                 System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");
@@ -126,7 +144,6 @@ public class Core extends Observable implements Runnable {
         this.moveBuffer = move;
         this.notify();
     }
-
 
     public boolean isWhiteTurn() {
         return plateau.isCurrentPlayerWhite();
@@ -165,7 +182,6 @@ public class Core extends Observable implements Runnable {
     public void stop() {
         running = false;
     }
-
 
     public Plateau getPlateau() {
         return plateau;
