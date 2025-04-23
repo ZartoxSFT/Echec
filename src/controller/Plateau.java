@@ -17,7 +17,6 @@ public class Plateau {
     private Map<Case, Point> caseMap = new HashMap<>();
     private boolean currentPlayerIsWhite = true; // Pour alterner les coups
     private Map<Piece, Boolean> hasMoved = new HashMap<>(); // Pour roque
-    private Piece enPassantTarget = null; // Pour la prise en passant
 
 
     public enum Direction {
