@@ -49,6 +49,25 @@ public class DecoPawn implements MovementStrategy {
             moves.add(new int[]{x + direction, y + 1});
         }
 
+        // Capture en passant
+    Piece enPassantTarget = plateau.getEnPassantTarget();
+    if (enPassantTarget != null) {
+        // Vérifier à gauche
+        if (y - 1 >= 0) {
+            Case leftCase = plateau.getCase(x, y - 1);
+            if (leftCase != null && leftCase.getPiece() == enPassantTarget) {
+                moves.add(new int[]{x + direction, y - 1});
+            }
+        }
+        // Vérifier à droite
+        if (y + 1 < 8) {
+            Case rightCase = plateau.getCase(x, y + 1);
+            if (rightCase != null && rightCase.getPiece() == enPassantTarget) {
+                moves.add(new int[]{x + direction, y + 1});
+            }
+        }
+    }
+
         // Appeler aussi le wrapped si jamais on veut ajouter des mouvements spéciaux (ex : promotion)
         if (wrapped != null) {
             moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));

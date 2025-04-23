@@ -76,25 +76,21 @@ public class Core extends Observable implements Runnable {
             return;
         }
     
-        // Gestion du roque
-        if (piece instanceof model.pieces.King && Math.abs(newY - oldY) == 2) {
-            boolean isKingSide = newY > oldY;
-            int rookOldY = isKingSide ? 7 : 0;
-            int rookNewY = isKingSide ? 5 : 3;
-    
-            Case rookOldCase = plateau.getCase(oldX, rookOldY);
-            Case rookNewCase = plateau.getCase(oldX, rookNewY);
-    
-            Piece rook = rookOldCase.getPiece();
-            if (rook != null && rook instanceof model.pieces.Rook) {
-                // Déplacer la tour
-                rookOldCase.setPiece(null);
-                rookNewCase.setPiece(rook);
-                rook.setX(oldX);
-                rook.setY(rookNewY);
-    
-                // Marquer la tour comme ayant bougé
-                plateau.getHasMoved().put(rook, true);
+        // Gestion de la capture en passant
+        if (piece instanceof model.pieces.Pawn) {
+            // Vérifier si le mouvement est une capture en passant
+            if (newCase.getPiece() == null && Math.abs(newY - oldY) == 1 && Math.abs(newX - oldX) == 1) {
+                Piece enPassantTarget = plateau.getEnPassantTarget();
+                if (enPassantTarget != null && enPassantTarget.getX() == oldX && enPassantTarget.getY() == newY) {
+                    // Vérifier que le pion cible est bien celui qui a avancé de deux cases
+                    Case capturedPawnCase = plateau.getCase(enPassantTarget.getX(), enPassantTarget.getY());
+                    if (capturedPawnCase != null && capturedPawnCase.getPiece() == enPassantTarget) {
+                        // Retirer le pion capturé
+                        capturedPawnCase.setPiece(null);
+                        pieces.remove(enPassantTarget);
+                        System.out.println("Capture en passant !");
+                    }
+                }
             }
         }
     
@@ -128,6 +124,15 @@ public class Core extends Observable implements Runnable {
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newX == 0) || (!piece.getColor() && newX == 7)) {
                 plateau.promotePawn(piece, pieces);
+            }
+        }
+    
+        // Mise à jour de la cible en passant (après le déplacement)
+        if (piece instanceof model.pieces.Pawn) {
+            if (Math.abs(newX - oldX) == 2) {
+                plateau.updateEnPassantTarget(piece, oldX, newX);
+            } else {
+                plateau.updateEnPassantTarget(null, 0, 0); // Réinitialiser si ce n'est pas un mouvement de deux cases
             }
         }
     

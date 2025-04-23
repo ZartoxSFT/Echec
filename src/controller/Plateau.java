@@ -17,6 +17,7 @@ public class Plateau {
     private Map<Case, Point> caseMap = new HashMap<>();
     private boolean currentPlayerIsWhite = true; // Pour alterner les coups
     private Map<Piece, Boolean> hasMoved = new HashMap<>(); // Pour roque
+    private Piece enPassantTarget = null; // Pour la prise en passant
 
 
     public enum Direction {
@@ -76,6 +77,18 @@ public class Plateau {
 
     public Map<Piece, Boolean> getHasMoved() {
         return hasMoved;
+    }
+
+    public void updateEnPassantTarget(Piece pawn, int startX, int endX) {
+        if (pawn instanceof model.pieces.Pawn && Math.abs(startX - endX) == 2) {
+            enPassantTarget = pawn;
+        } else {
+            enPassantTarget = null;
+        }
+    }
+    
+    public Piece getEnPassantTarget() {
+        return enPassantTarget;
     }
     
     
