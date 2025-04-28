@@ -160,9 +160,11 @@ public class Core extends Observable implements Runnable {
                 
                 System.out.println("Tentative de mouvement : " + piece.getClass().getSimpleName() + " vers (" + x + "," + y + ")");
                 System.out.println("Mouvements possibles : ");
-                for (int[] move : piece.getValidMoves(plateau)) {
+                List<int[]> validMoves = plateau.filterValidMoves(piece);
+                for (int[] move : validMoves) {
                     System.out.println(" -> (" + move[0] + "," + move[1] + ")");
                 }
+
                 if (moveBuffer.isMoveValid(plateau)) {
                     movePiece(piece, targetCase);
                 }

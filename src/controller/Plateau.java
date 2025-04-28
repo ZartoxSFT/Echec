@@ -315,4 +315,37 @@ public class Plateau {
         }
         return false;
     }
+
+    public List<int[]> filterValidMoves(Piece piece) {
+        List<int[]> validMoves = new ArrayList<>();
+        List<int[]> possibleMoves = piece.getValidMoves(this);
+    
+        for (int[] move : possibleMoves) {
+            Case originalCase = piece.getCurrentCase();
+            Case targetCase = getCase(move[0], move[1]);
+            if (targetCase == null) continue;
+    
+            Piece capturedPiece = targetCase.getPiece();
+    
+            // Simuler le mouvement
+            originalCase.setPiece(null);
+            targetCase.setPiece(piece);
+            piece.setCurrentCase(targetCase);
+    
+            // Vérifier si le roi reste en sécurité
+            boolean kingInCheck = isKingInCheck(piece.getColor());
+    
+            // Annuler la simulation
+            targetCase.setPiece(capturedPiece);
+            originalCase.setPiece(piece);
+            piece.setCurrentCase(originalCase);
+    
+            // Ajouter le mouvement uniquement si le roi n'est pas en échec
+            if (!kingInCheck) {
+                validMoves.add(move);
+            }
+        }
+    
+        return validMoves;
+    }
 }
