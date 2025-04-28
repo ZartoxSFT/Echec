@@ -1,14 +1,15 @@
 package model.pieces;
 
+import model.Case;
 import model.Piece;
 import model.movement.DecoPawn;
 
 
 public class Pawn extends Piece {
 
-    public Pawn(boolean color) {
+    public Pawn(boolean color, Case initialCase) {
         // Utilisation de DecoPawn pour définir les mouvements du pion
-        super(new DecoPawn(null));  // Par exemple, DecoRook peut être un bon point de départ
+        super(new DecoPawn(null), initialCase);
         this.color = color;
         setImg(); // Initialisation de l'image du pion
     }

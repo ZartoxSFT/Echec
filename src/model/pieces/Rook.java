@@ -1,12 +1,13 @@
 package model.pieces;
 
 import model.Piece;
+import model.Case;
 import model.movement.DecoRook;
 
 public class Rook extends Piece {
 
-    public Rook(boolean color) {
-        super(new DecoRook(null)); // Utilisation du décorateur DecoRook
+    public Rook(boolean color, Case initialCase) {
+        super(new DecoRook(null), initialCase); // Utilisation du décorateur DecoRook
         this.color = color;
         setImg(); // Initialisation de l'image de la tour
     }

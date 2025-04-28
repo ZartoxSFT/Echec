@@ -121,7 +121,7 @@ public class UI extends JFrame implements Observer {
             ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
                     .getImage()
                     .getScaledInstance(pxCase, pxCase, Image.SCALE_SMOOTH));
-            tab[piece.getX()][piece.getY()].setIcon(icon);
+            tab[piece.getCurrentCase().getX()][piece.getCurrentCase().getY()].setIcon(icon);
         }
     }
 

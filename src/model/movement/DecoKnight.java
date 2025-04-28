@@ -14,32 +14,29 @@ public class DecoKnight implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
+    public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
 
-        // Déplacements en "L" du cavalier
-        int[] dx = {-2, -1, 1, 2, 2, 1, -1, -2};
-        int[] dy = {1, 2, 2, 1, -1, -2, -2, -1};
+        // Déplacements en "L" du cavalier (8 directions spécifiques)
+        int[][] knightMoves = {
+            {-2, 1}, {-1, 2}, {1, 2}, {2, 1},
+            {2, -1}, {1, -2}, {-1, -2}, {-2, -1}
+        };
 
-        Case currentCase = plateau.getCase(x, y);
-        if (currentCase == null) return moves;
-
-        for (int i = 0; i < 8; i++) {
-            int newX = x + dx[i];
-            int newY = y + dy[i];
-
-            Case targetCase = plateau.getCase(newX, newY);
+        for (int[] move : knightMoves) {
+            Case targetCase = plateau.getCase(currentCase.getX() + move[0], currentCase.getY() + move[1]);
             if (targetCase != null) {
                 Piece targetPiece = targetCase.getPiece();
+                // Ajouter la case si elle est vide ou contient une pièce ennemie
                 if (targetPiece == null || targetPiece.getColor() != piece.getColor()) {
-                    moves.add(new int[]{newX, newY});
+                    moves.add(new int[]{targetCase.getX(), targetCase.getY()});
                 }
             }
         }
 
         // Ajoute les mouvements de la stratégie décorée, si elle existe
         if (wrapped != null) {
-            moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));
+            moves.addAll(wrapped.getValidMoves(piece, currentCase, plateau));
         }
 
         return moves;

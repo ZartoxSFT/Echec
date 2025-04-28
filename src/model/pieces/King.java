@@ -1,14 +1,15 @@
 package model.pieces;
 
 import model.Piece;
+import model.Case;
 import model.movement.DecoKing;
 
 
 public class King extends Piece {
 
-    public King(boolean color) {
+    public King(boolean color, Case initialCase) {
         // Utilisation de DecoKing pour définir les mouvements du roi
-        super(new DecoKing());  // Par exemple, DecoRook peut être un bon point de départ
+        super(new DecoKing(), initialCase);  // Par exemple, DecoRook peut être un bon point de départ
         this.color = color;
         setImg(); // Initialisation de l'image du roi
     }

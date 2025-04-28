@@ -1,12 +1,13 @@
 package model.pieces;
 
 import model.Piece;
+import model.Case;
 import model.movement.DecoKnight;
 
 public class Knight extends Piece {
 
-    public Knight(boolean color) {
-        super(new DecoKnight(null)); // Utilisation du décorateur DecoKnight
+    public Knight(boolean color, Case initialCase) {
+        super(new DecoKnight(null), initialCase); // Utilisation du décorateur DecoKnight
         this.color = color;
         setImg(); // Initialisation de l'image du cavalier
     }

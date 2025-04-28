@@ -14,7 +14,7 @@ public class DecoBishop implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
+    public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
 
         // Déplacements diagonaux
@@ -22,9 +22,6 @@ public class DecoBishop implements MovementStrategy {
             Plateau.Direction.UP_LEFT, Plateau.Direction.UP_RIGHT,
             Plateau.Direction.DOWN_LEFT, Plateau.Direction.DOWN_RIGHT
         };
-
-        Case currentCase = plateau.getCase(x, y);
-        if (currentCase == null) return moves;
 
         for (Plateau.Direction direction : directions) {
             Case nextCase = plateau.getCaseRelative(currentCase, direction);
@@ -44,7 +41,7 @@ public class DecoBishop implements MovementStrategy {
 
         // Ajoute les mouvements de la stratégie décorée, si elle existe
         if (wrapped != null) {
-            moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));
+            moves.addAll(wrapped.getValidMoves(piece, currentCase, plateau));
         }
 
         return moves;

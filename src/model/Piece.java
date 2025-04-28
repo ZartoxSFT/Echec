@@ -6,53 +6,45 @@ import java.util.List;
 import java.util.Observable;
 import java.io.File;
 import javax.imageio.ImageIO;
+import model.Case;
 
 import controller.Plateau;
 
-public class Piece extends Observable {
-    private int x;
-    private int y;
+public abstract class Piece extends Observable {
+    private Case currentCase; // La case actuelle de la pièce
     protected boolean color; // true = blanc, false = noir
     protected String img; // nom de l'image de la pièce
-    private MovementStrategy movementStrategy; // La stratégie de mouvement
+    protected MovementStrategy movementStrategy; // La stratégie de mouvement
 
-    public Piece(MovementStrategy movementStrategy) {
-        this.x = 0;
-        this.y = 0;
+    public Piece(MovementStrategy movementStrategy, Case initialCase) {
         this.movementStrategy = movementStrategy;
+        this.currentCase = initialCase;
+        if (initialCase != null) {
+            this.currentCase.setPiece(this); // Associe la pièce à sa case
+        }
     }
 
     // Getter pour obtenir les déplacements valides
     public List<int[]> getValidMoves(Plateau plateau) {
-        return movementStrategy.getValidMoves(this, x, y, plateau);
+        return movementStrategy.getValidMoves(this, currentCase, plateau);
     }
 
-    public int getX() {
-        return this.x;
-    }
-
-    public int getY() {
-        return this.y;
+    public Case getCurrentCase() {
+        return currentCase;
     }
 
     public boolean getColor() {
         return this.color;
     }
 
+    public void setCurrentCase(Case currentCase) {
+        this.currentCase = currentCase;
+        this.setChanged();
+        this.notifyObservers();
+    }
+
     public void setColor(boolean color) {
         this.color = color;
-        this.setChanged();
-        this.notifyObservers();
-    }
-
-    public void setX(int x) {
-        this.x = x;
-        this.setChanged();
-        this.notifyObservers();
-    }
-
-    public void setY(int y) {
-        this.y = y;
         this.setChanged();
         this.notifyObservers();
     }
@@ -77,9 +69,8 @@ public class Piece extends Observable {
         }
     }
 
-    protected void initialisePosition(int x, int y) {
-        this.x = x;
-        this.y = y;
+    protected void initialisePosition(Case initialCase) {
+        this.currentCase = initialCase;
         this.setChanged();
         this.notifyObservers();
     }

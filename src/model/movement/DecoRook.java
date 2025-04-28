@@ -16,7 +16,7 @@ public class DecoRook implements MovementStrategy {
     }
 
     @Override
-    public List<int[]> getValidMoves(Piece piece, int x, int y, Plateau plateau) {
+    public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
 
         // Déplacements horizontaux et verticaux
@@ -25,7 +25,6 @@ public class DecoRook implements MovementStrategy {
             Plateau.Direction.UP, Plateau.Direction.DOWN
         };
 
-        Case currentCase = plateau.getCase(x, y);
         if (currentCase == null) return moves;
 
         for (Plateau.Direction direction : directions) {
@@ -46,7 +45,7 @@ public class DecoRook implements MovementStrategy {
 
         // Ajoute les mouvements de la stratégie décorée, si elle existe
         if (wrapped != null) {
-            moves.addAll(wrapped.getValidMoves(piece, x, y, plateau));
+            moves.addAll(wrapped.getValidMoves(piece, currentCase, plateau));
         }
 
         return moves;

@@ -1,12 +1,13 @@
 package model.pieces;
 
 import model.Piece;
+import model.Case;
 import model.movement.DecoQueen;
 
 public class Queen extends Piece {
 
-    public Queen(boolean color) {
-        super(new DecoQueen(null)); // La reine combine les mouvements de la tour et du fou
+    public Queen(boolean color, Case initialCase) {
+        super(new DecoQueen(null), initialCase); // La reine combine les mouvements de la tour et du fou
         this.color = color;
         setImg(); // Initialisation de l'image de la reine
     }

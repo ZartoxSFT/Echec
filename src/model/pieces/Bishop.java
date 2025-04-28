@@ -1,12 +1,13 @@
 package model.pieces;
 
 import model.Piece;
+import model.Case;
 import model.movement.DecoBishop;
 
 public class Bishop extends Piece {
 
-    public Bishop(boolean color) {
-        super(new DecoBishop(null)); // Utilisation du décorateur DecoBishop
+    public Bishop(boolean color, Case initialCase) {
+        super(new DecoBishop(null), initialCase); // Utilisation du décorateur DecoBishop
         this.color = color;
         setImg(); // Initialisation de l'image du fou
     }
