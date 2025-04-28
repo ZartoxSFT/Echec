@@ -18,7 +18,7 @@ public class Plateau {
     private boolean currentPlayerIsWhite = true; // Pour alterner les coups
     private Map<Piece, Boolean> hasMoved = new HashMap<>(); // Pour roque
     private Piece enPassantTarget = null; // Cible pour la capture en passant
-    private boolean isCheckingThreats = false; // Pour vérifier les menaces
+    private boolean isCheckingThreats = false; // Drapeau de sécurité pour vérifier les menaces et éviter les boucles infinies
 
 
     public enum Direction {
@@ -221,31 +221,40 @@ public class Plateau {
     }
     
     public boolean isKingInCheck(boolean whiteKing) {
-        // 1. Trouver le roi
-        Piece king = null;
-        Point kingPosition = null;
-        for (Map.Entry<Case, Point> entry : caseMap.entrySet()) {
-            Case c = entry.getKey();
-            if (c.getPiece() != null && c.getPiece() instanceof model.pieces.King && c.getPiece().getColor() == whiteKing) {
-                king = c.getPiece();
-                kingPosition = entry.getValue();
-                break;
-            }
+        if (isCheckingThreats) {
+            return false; // Évite la récursion infinie
         }
-        if (king == null || kingPosition == null) return false; // Pas trouvé ? (impossible mais sécurité)
     
-        // 2. Chercher si une pièce ennemie peut l'atteindre
-        for (Map.Entry<Case, Point> entry : caseMap.entrySet()) {
-            Case c = entry.getKey();
-            Piece enemy = c.getPiece();
-            if (enemy != null && enemy.getColor() != whiteKing) {
-                List<int[]> moves = enemy.getValidMoves(this);
-                for (int[] move : moves) {
-                    if (move[0] == kingPosition.x && move[1] == kingPosition.y) {
-                        return true;
+        isCheckingThreats = true; // Marque le début de la vérification
+        try {
+            // 1. Trouver le roi
+            Piece king = null;
+            Point kingPosition = null;
+            for (Map.Entry<Case, Point> entry : caseMap.entrySet()) {
+                Case c = entry.getKey();
+                if (c.getPiece() != null && c.getPiece() instanceof model.pieces.King && c.getPiece().getColor() == whiteKing) {
+                    king = c.getPiece();
+                    kingPosition = entry.getValue();
+                    break;
+                }
+            }
+            if (king == null || kingPosition == null) return false; // Pas trouvé ? (impossible mais sécurité)
+    
+            // 2. Chercher si une pièce ennemie peut l'atteindre
+            for (Map.Entry<Case, Point> entry : caseMap.entrySet()) {
+                Case c = entry.getKey();
+                Piece enemy = c.getPiece();
+                if (enemy != null && enemy.getColor() != whiteKing) {
+                    List<int[]> moves = enemy.getValidMoves(this);
+                    for (int[] move : moves) {
+                        if (move[0] == kingPosition.x && move[1] == kingPosition.y) {
+                            return true;
+                        }
                     }
                 }
             }
+        } finally {
+            isCheckingThreats = false; // Réinitialise le drapeau
         }
     
         return false;

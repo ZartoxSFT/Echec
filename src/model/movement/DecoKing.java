@@ -9,36 +9,57 @@ import java.util.ArrayList;
 public class DecoKing implements MovementStrategy {
 
     @Override
-public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
-    List<int[]> moves = new ArrayList<>();
+    public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
+        List<int[]> moves = new ArrayList<>();
 
-    // Déplacements du roi : 1 case dans toutes les directions
-    Plateau.Direction[] directions = {
-        Plateau.Direction.UP, Plateau.Direction.DOWN,
-        Plateau.Direction.LEFT, Plateau.Direction.RIGHT,
-        Plateau.Direction.UP_LEFT, Plateau.Direction.UP_RIGHT,
-        Plateau.Direction.DOWN_LEFT, Plateau.Direction.DOWN_RIGHT
-    };
+        // Déplacements du roi : 1 case dans toutes les directions
+        Plateau.Direction[] directions = {
+            Plateau.Direction.UP, Plateau.Direction.DOWN,
+            Plateau.Direction.LEFT, Plateau.Direction.RIGHT,
+            Plateau.Direction.UP_LEFT, Plateau.Direction.UP_RIGHT,
+            Plateau.Direction.DOWN_LEFT, Plateau.Direction.DOWN_RIGHT
+        };
 
-    // Déplacements normaux du roi
-    for (Plateau.Direction direction : directions) {
-        Case nextCase = plateau.getCaseRelative(currentCase, direction);
+        // Déplacements normaux du roi
+        for (Plateau.Direction direction : directions) {
+            Case nextCase = plateau.getCaseRelative(currentCase, direction);
 
-        if (nextCase != null) {
-            Piece targetPiece = nextCase.getPiece();
-            // Vérifie si la case est menacée uniquement si ce n'est pas une récursion
-            if ((targetPiece == null || targetPiece.getColor() != piece.getColor()) &&
-                !plateau.isCaseThreatened(nextCase, !piece.getColor())) {
-                moves.add(new int[]{nextCase.getX(), nextCase.getY()});
+            if (nextCase != null) {
+                Piece targetPiece = nextCase.getPiece();
+
+                // Vérifie si la case est menacée uniquement si ce n'est pas une récursion
+                if ((targetPiece == null || targetPiece.getColor() != piece.getColor()) &&
+                    !plateau.isCaseThreatened(nextCase, !piece.getColor())) {
+
+                    // Simuler le mouvement pour vérifier si le roi reste en sécurité
+                    Case originalCase = piece.getCurrentCase();
+                    Piece capturedPiece = nextCase.getPiece();
+
+                    // Simuler le déplacement
+                    originalCase.setPiece(null);
+                    nextCase.setPiece(piece);
+                    piece.setCurrentCase(nextCase);
+
+                    boolean kingInCheck = plateau.isKingInCheck(piece.getColor());
+
+                    // Annuler la simulation
+                    nextCase.setPiece(capturedPiece);
+                    originalCase.setPiece(piece);
+                    piece.setCurrentCase(originalCase);
+
+                    // Ajouter le mouvement uniquement si le roi n'est pas en échec
+                    if (!kingInCheck) {
+                        moves.add(new int[]{nextCase.getX(), nextCase.getY()});
+                    }
+                }
             }
         }
+
+        // Ajout des mouvements de roque
+        addCastlingMoves(piece, currentCase, plateau, moves);
+
+        return moves;
     }
-
-    // Ajout des mouvements de roque
-    addCastlingMoves(piece, currentCase, plateau, moves);
-
-    return moves;
-}
 
     private void addCastlingMoves(Piece king, Case currentCase, Plateau plateau, List<int[]> moves) {
         // Vérifier si le roi n'a pas bougé

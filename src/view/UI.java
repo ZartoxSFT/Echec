@@ -5,7 +5,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Observer;
+import java.util.ArrayList;
 import java.util.Observable;
+import java.util.List;
 
 import controller.Core;
 import model.Move;
@@ -18,6 +20,7 @@ public class UI extends JFrame implements Observer {
     private JPanel capturedPiecesPanel = new JPanel();
     private static final int pxCase = 80;
     private Piece selectedPiece = null;
+    private List<int[]> possibleMoves = new ArrayList<>(); // Liste des mouvements possibles
 
     public UI(Core core) {
         super("Échiquier");
