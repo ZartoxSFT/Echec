@@ -12,6 +12,7 @@ import java.util.List;
 import controller.Core;
 import model.Move;
 import model.Piece;
+import model.Case;
 
 public class UI extends JFrame implements GameUI {
     private Core core;
@@ -37,16 +38,21 @@ public class UI extends JFrame implements GameUI {
     public void initialize() {
         build();
         setVisible(true);
-        
+
         // Afficher la boîte de dialogue de sélection du mode
         GameModeDialog dialog = new GameModeDialog(this);
         dialog.setVisible(true);
         int minutes = dialog.getSelectedMinutes();
-        
+
+        // Configurer l'IA si nécessaire
+        if (dialog.isAIGame()) {
+            core.setAI(true, dialog.getAIDifficulty(), dialog.isAIWhite());
+        }
+
         if (minutes == -1) {
             minutes = 0;
         }
-        
+
         // Créer et configurer le timer avec un callback pour la fin du temps
         gameTimer = new GameTimer(minutes, (isWhiteTimeout) -> {
             String message = "Temps écoulé ! Les " + (isWhiteTimeout ? "Noirs" : "Blancs") + " gagnent !";
@@ -83,7 +89,7 @@ public class UI extends JFrame implements GameUI {
         // Panel du haut pour les messages et le timer
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-        
+
         labelTour.setFont(new Font("Arial", Font.BOLD, 24));
         labelTour.setAlignmentX(Component.CENTER_ALIGNMENT);
         topPanel.add(labelTour);
@@ -111,7 +117,7 @@ public class UI extends JFrame implements GameUI {
 
         // Panel principal qui contient les coordonnées et le plateau
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
-        
+
         // Ajout des lettres (a-h) en haut
         JPanel topLetters = new JPanel(new GridLayout(1, 8));
         for (char c = 'a'; c <= 'h'; c++) {
@@ -200,8 +206,9 @@ public class UI extends JFrame implements GameUI {
 
         if (selectedPiece != null) {
             System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
-            Move move = new Move(selectedPiece, x, y);
-            
+            Case targetCase = core.getPlateau().getCase(x, y);
+            Move move = new Move(selectedPiece, targetCase);
+
             // Vérifier si le mouvement est valide avant de changer le tour
             if (move.isMoveValid(core.getPlateau())) {
                 core.doMove(move);
@@ -259,7 +266,7 @@ public class UI extends JFrame implements GameUI {
             showGameEndDialog(message);
         } else if (whiteKingInCheck || blackKingInCheck) {
             message = "Échec au roi " + (whiteKingInCheck ? "blanc" : "noir") + " !";
-            labelTour.setText("<html>Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs") + 
+            labelTour.setText("<html>Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs") +
                 "<br><font color='red'>" + message + "</font></html>");
             return;
         }

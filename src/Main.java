@@ -17,7 +17,6 @@ public class Main {
         System.out.print("Choisissez votre interface (1 ou 2) : ");
 
         int choice = scanner.nextInt();
-        
         if (choice == 2) {
             ui = new ConsoleUI(core);
         } else {

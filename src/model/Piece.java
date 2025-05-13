@@ -33,6 +33,10 @@ public abstract class Piece extends Observable {
         return currentCase;
     }
 
+    public Case getPosition() {
+        return currentCase;
+    }
+
     public boolean getColor() {
         return this.color;
     }

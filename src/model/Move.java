@@ -4,15 +4,13 @@ import controller.Plateau;
 
 public class Move {
     private Piece piece;
-    private int x;
-    private int y;
+    private Case destination;
 
     public Move() {}
 
-    public Move(Piece piece, int x, int y) {
+    public Move(Piece piece, Case destination) {
         this.piece = piece;
-        this.x = x;
-        this.y = y;
+        this.destination = destination;
     }
 
     public Piece getPiece() {
@@ -24,23 +22,23 @@ public class Move {
     }
 
     public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
+        return destination.getX();
     }
 
     public int getY() {
-        return y;
+        return destination.getY();
     }
 
-    public void setY(int y) {
-        this.y = y;
+    public Case getDestination() {
+        return destination;
+    }
+
+    public void setDestination(Case destination) {
+        this.destination = destination;
     }
 
     public boolean isMoveValid(Plateau plateau) {
         return piece.getValidMoves(plateau).stream()
-        .anyMatch(move -> move[0] == this.x && move[1] == this.y);
+        .anyMatch(move -> move[0] == this.getX() && move[1] == this.getY());
     }    
 }

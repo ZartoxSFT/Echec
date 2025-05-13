@@ -5,63 +5,135 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class GameModeDialog extends JDialog {
-    private int selectedMinutes = -1; // -1 signifie pas de timer
+    private int selectedMinutes = 10; // Valeur par défaut pour le timer
+    private boolean isAIGame = false;
+    private boolean aiIsWhite = false;
+    private int aiDifficulty = 1;
 
-    public GameModeDialog(Frame parent) {
-        super(parent, "Sélection du mode de jeu", true);
-        setLayout(new GridLayout(0, 1, 10, 10));
+    public GameModeDialog(JFrame parent) {
+        super(parent, "Configuration de la partie", true);
+        setLayout(new BorderLayout(10, 10));
+        ((JPanel) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Options de temps
-        String[][] modes = {
-            {"Bullet (1 min)", "1"},
-            {"Blitz (3 min)", "3"},
-            {"Classic (5 min)", "5"},
-            {"Classic (10 min)", "10"},
-            {"Long (60 min)", "60"},
-            {"Sans Timer", "0"}
-        };
+        // Panel pour le mode de jeu
+        JPanel gameModePanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        gameModePanel.setBorder(BorderFactory.createTitledBorder("Mode de jeu"));
+        ButtonGroup gameModeGroup = new ButtonGroup();
+        JRadioButton pvpButton = new JRadioButton("Joueur vs Joueur", true);
+        JRadioButton pveButton = new JRadioButton("Joueur vs IA");
+        gameModeGroup.add(pvpButton);
+        gameModeGroup.add(pveButton);
+        gameModePanel.add(pvpButton);
+        gameModePanel.add(pveButton);
 
-        // Création des boutons avec un style moderne
-        for (String[] mode : modes) {
-            JButton button = new JButton(mode[0]);
-            button.setFont(new Font("Arial", Font.BOLD, 14));
-            button.setBackground(new Color(240, 240, 240));
-            button.setFocusPainted(false);
-            button.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200)),
-                BorderFactory.createEmptyBorder(10, 20, 10, 20)
-            ));
+        // Panel pour les options de l'IA (initialement désactivé)
+        JPanel aiOptionsPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        aiOptionsPanel.setBorder(BorderFactory.createTitledBorder("Options de l'IA"));
+        ButtonGroup aiColorGroup = new ButtonGroup();
+        JRadioButton aiWhiteButton = new JRadioButton("L'IA joue les Blancs", true);
+        JRadioButton aiBlackButton = new JRadioButton("L'IA joue les Noirs");
+        aiColorGroup.add(aiWhiteButton);
+        aiColorGroup.add(aiBlackButton);
+        aiOptionsPanel.add(aiWhiteButton);
+        aiOptionsPanel.add(aiBlackButton);
 
-            // Effet de survol
-            button.addMouseListener(new MouseAdapter() {
-                public void mouseEntered(MouseEvent e) {
-                    button.setBackground(new Color(220, 220, 220));
-                }
-                public void mouseExited(MouseEvent e) {
-                    button.setBackground(new Color(240, 240, 240));
-                }
-            });
+        // Choix de la difficulté
+        JPanel difficultyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        difficultyPanel.add(new JLabel("Difficulté : "));
+        String[] difficulties = {"Aléatoire", "Facile", "Moyen"};
+        JComboBox<String> difficultyCombo = new JComboBox<>(difficulties);
+        difficultyPanel.add(difficultyCombo);
+        aiOptionsPanel.add(difficultyPanel);
+        aiOptionsPanel.setEnabled(false);
 
-            button.addActionListener(e -> {
-                selectedMinutes = Integer.parseInt(mode[1]);
-                dispose();
-            });
+        // Panel pour le timer
+        JPanel timerPanel = new JPanel(new GridLayout(0, 1, 5, 5));
+        timerPanel.setBorder(BorderFactory.createTitledBorder("Timer"));
+        String[] timeOptions = {"Sans limite", "1 min (Bullet)", "3 min (Blitz)", "5 min (Blitz)", "10 min (Rapide)", "30 min (Long)"};
+        JComboBox<String> timeCombo = new JComboBox<>(timeOptions);
+        timeCombo.setSelectedIndex(4); // 10 min par défaut
+        timerPanel.add(timeCombo);
 
-            add(button);
+        // Panel pour les boutons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Annuler");
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+
+        // Activer/désactiver les options de l'IA
+        pveButton.addActionListener(e -> {
+            Component[] components = aiOptionsPanel.getComponents();
+            for (Component c : components) {
+                c.setEnabled(true);
+            }
+        });
+
+        pvpButton.addActionListener(e -> {
+            Component[] components = aiOptionsPanel.getComponents();
+            for (Component c : components) {
+                c.setEnabled(false);
+            }
+        });
+
+        // Actions des boutons
+        okButton.addActionListener(e -> {
+            isAIGame = pveButton.isSelected();
+            aiIsWhite = aiWhiteButton.isSelected();
+            aiDifficulty = difficultyCombo.getSelectedIndex() + 1;
+
+            // Configurer le timer
+            switch (timeCombo.getSelectedIndex()) {
+                case 0: selectedMinutes = 0; break;     // Sans limite
+                case 1: selectedMinutes = 1; break;     // Bullet
+                case 2: selectedMinutes = 3; break;     // Blitz 3
+                case 3: selectedMinutes = 5; break;     // Blitz 5
+                case 4: selectedMinutes = 10; break;    // Rapide
+                case 5: selectedMinutes = 30; break;    // Long
+            }
+            dispose();
+        });
+
+        cancelButton.addActionListener(e -> {
+            selectedMinutes = -1;
+            dispose();
+        });
+
+        // Assembler les panels
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.add(gameModePanel);
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(aiOptionsPanel);
+        mainPanel.add(Box.createVerticalStrut(10));
+        mainPanel.add(timerPanel);
+
+        add(mainPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Désactiver initialement les options de l'IA
+        Component[] components = aiOptionsPanel.getComponents();
+        for (Component c : components) {
+            c.setEnabled(false);
         }
 
-        // Configuration de la fenêtre
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(300, 400);
+        pack();
         setLocationRelativeTo(parent);
-        
-        // Ajout de marges
-        ((JPanel)getContentPane()).setBorder(
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        );
     }
 
     public int getSelectedMinutes() {
         return selectedMinutes;
     }
-} 
+
+    public boolean isAIGame() {
+        return isAIGame;
+    }
+
+    public boolean isAIWhite() {
+        return aiIsWhite;
+    }
+
+    public int getAIDifficulty() {
+        return aiDifficulty;
+    }
+}
