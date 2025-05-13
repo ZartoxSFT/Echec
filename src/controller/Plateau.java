@@ -348,4 +348,86 @@ public class Plateau {
     
         return validMoves;
     }
+
+    public boolean isStalemate(boolean whitePlayer) {
+        // Si le roi est en échec, ce n'est pas un pat
+        if (isKingInCheck(whitePlayer)) {
+            return false;
+        }
+
+        // Vérifier si le joueur a des coups légaux
+        for (Piece piece : pieces) {
+            if (piece.getColor() == whitePlayer) {
+                List<int[]> validMoves = filterValidMoves(piece);
+                if (!validMoves.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+
+        // Si aucun coup légal n'est trouvé et le roi n'est pas en échec, c'est un pat
+        return true;
+    }
+
+    public boolean isInsufficientMaterial() {
+        int whiteBishops = 0, blackBishops = 0;
+        int whiteKnights = 0, blackKnights = 0;
+        boolean hasWhiteLightSquareBishop = false, hasWhiteDarkSquareBishop = false;
+        boolean hasBlackLightSquareBishop = false, hasBlackDarkSquareBishop = false;
+
+        for (Piece piece : pieces) {
+            if (piece instanceof model.pieces.Pawn ||
+                piece instanceof model.pieces.Rook ||
+                piece instanceof model.pieces.Queen) {
+                return false; // Ces pièces peuvent toujours mater
+            }
+
+            if (piece instanceof model.pieces.Bishop) {
+                if (piece.getColor()) {
+                    whiteBishops++;
+                    // Vérifier la couleur de la case du fou
+                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;
+                    if (isLightSquare) hasWhiteLightSquareBishop = true;
+                    else hasWhiteDarkSquareBishop = true;
+                } else {
+                    blackBishops++;
+                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;
+                    if (isLightSquare) hasBlackLightSquareBishop = true;
+                    else hasBlackDarkSquareBishop = true;
+                }
+            }
+
+            if (piece instanceof model.pieces.Knight) {
+                if (piece.getColor()) whiteKnights++;
+                else blackKnights++;
+            }
+        }
+
+        // Roi contre Roi
+        if (whiteBishops == 0 && blackBishops == 0 && whiteKnights == 0 && blackKnights == 0) {
+            return true;
+        }
+
+        // Roi et Fou contre Roi
+        if ((whiteBishops == 1 && blackBishops == 0 && whiteKnights == 0 && blackKnights == 0) ||
+            (whiteBishops == 0 && blackBishops == 1 && whiteKnights == 0 && blackKnights == 0)) {
+            return true;
+        }
+
+        // Roi et Cavalier contre Roi
+        if ((whiteKnights == 1 && blackKnights == 0 && whiteBishops == 0 && blackBishops == 0) ||
+            (whiteKnights == 0 && blackKnights == 1 && whiteBishops == 0 && blackBishops == 0)) {
+            return true;
+        }
+
+        // Roi et Fous de même couleur contre Roi
+        if (whiteBishops > 0 && blackBishops == 0 && whiteKnights == 0 && blackKnights == 0) {
+            return !hasWhiteLightSquareBishop || !hasWhiteDarkSquareBishop;
+        }
+        if (blackBishops > 0 && whiteBishops == 0 && whiteKnights == 0 && blackKnights == 0) {
+            return !hasBlackLightSquareBishop || !hasBlackDarkSquareBishop;
+        }
+
+        return false;
+    }
 }

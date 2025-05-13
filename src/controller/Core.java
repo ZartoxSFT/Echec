@@ -109,13 +109,25 @@ public class Core extends Observable implements Runnable {
             }
         }
     
-        // Gestion échec/mat
-        if (plateau.isKingInCheck(!plateau.isCurrentPlayerWhite())) {
-            if (plateau.isCheckMate(!plateau.isCurrentPlayerWhite())) {
+        // Gestion échec/mat et pat
+        boolean isOpponentWhite = !plateau.isCurrentPlayerWhite();
+        if (plateau.isKingInCheck(isOpponentWhite)) {
+            if (plateau.isCheckMate(isOpponentWhite)) {
                 System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");
                 running = false;
             } else {
                 System.out.println("Échec contre " + (!plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " !");
+            }
+        } else {
+            // Vérifier le pat
+            if (plateau.isStalemate(isOpponentWhite)) {
+                System.out.println("Pat ! La partie est nulle !");
+                running = false;
+            }
+            // Vérifier le matériel insuffisant
+            else if (plateau.isInsufficientMaterial()) {
+                System.out.println("Match nul par matériel insuffisant !");
+                running = false;
             }
         }
     
@@ -180,5 +192,11 @@ public class Core extends Observable implements Runnable {
 
     public Plateau getPlateau() {
         return plateau;
+    }
+
+    // Nouvelle méthode pour forcer une mise à jour de l'UI
+    public void forceUpdate() {
+        setChanged();
+        notifyObservers();
     }
 }
