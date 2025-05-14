@@ -1,7 +1,5 @@
 package model;
 
-import controller.Plateau;
-
 public class Move {
     private Piece piece;
     private Case destination;

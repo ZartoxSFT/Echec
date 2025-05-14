@@ -1,11 +1,9 @@
 package model.movement;
 
 import model.Piece;
+import model.Plateau;
 import model.Case;
 import java.util.List;
-
-import controller.Plateau;
-
 import java.util.ArrayList;
 
 public class DecoRook implements MovementStrategy {

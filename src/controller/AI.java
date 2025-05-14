@@ -2,6 +2,7 @@ package controller;
 
 import model.Move;
 import model.Piece;
+import model.Plateau;
 import model.Case;
 import java.util.List;
 import java.util.Random;
