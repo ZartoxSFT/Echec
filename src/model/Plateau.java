@@ -1,14 +1,10 @@
-package controller;
+package model;
 
 import java.awt.Point;
 import java.util.*;
 
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
-
-import model.Case;
-import model.Move;
-import model.Piece;
 
 public class Plateau {
     private List<Piece> pieces;
@@ -131,7 +127,7 @@ public class Plateau {
     }
     
     
-    protected void promotePawn(Piece pawn, List<Piece> pieces) {
+    public void promotePawn(Piece pawn, List<Piece> pieces) {
         System.out.println("Promotion du pion !");
     
         // Vérifier que le pion est à promouvoir

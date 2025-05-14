@@ -1,8 +1,10 @@
 package model.movement;
 
 import model.Piece;
+import model.Plateau;
+
 import java.util.List;
-import controller.Plateau;
+
 import model.Case;
 
 public class Decorator implements MovementStrategy {

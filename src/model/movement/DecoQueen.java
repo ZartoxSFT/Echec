@@ -1,7 +1,8 @@
 package model.movement;
 
 import model.Piece;
-import controller.Plateau;
+import model.Plateau;
+
 import java.util.List;
 import java.util.ArrayList;
 import model.Case;

@@ -8,8 +8,6 @@ import java.io.File;
 import javax.imageio.ImageIO;
 import model.Case;
 
-import controller.Plateau;
-
 public abstract class Piece extends Observable {
     private Case currentCase; // La case actuelle de la pièce
     protected boolean color; // true = blanc, false = noir

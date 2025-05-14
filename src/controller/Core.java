@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 import model.Move;
 import model.Piece;
+import model.Plateau;
 import model.pieces.King;
 import model.Case;
-import controller.Plateau;
 
 public class Core extends Observable implements Runnable {
     private Move moveBuffer = null;
