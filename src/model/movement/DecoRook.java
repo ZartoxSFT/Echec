@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Implémente la stratégie de mouvement de la Tour.
- * Gère les mouvements horizontaux et verticaux.
+ * Classe décorant la stratégie de déplacement de la tour.
+ * Hérite de la classe Decorator.
+ * Ajoute les déplacements horizontaux et verticaux possibles à la stratégie décorée.
  */
-public class DecoRook implements MovementStrategy {
+public class DecoRook extends Decorator {
     private MovementStrategy wrapped;
 
     /**
@@ -18,6 +19,7 @@ public class DecoRook implements MovementStrategy {
      * @param wrapped La stratégie de mouvement à décorer
      */
     public DecoRook(MovementStrategy wrapped) {
+        super(wrapped);
         this.wrapped = wrapped;
     }
 

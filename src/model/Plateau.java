@@ -280,8 +280,16 @@ public class Plateau {
     }
 
     /**
-     * Récupère la cible pour la capture en passant.
-     * @return La cible pour la capture en passant.
+     * Définit la cible de prise en passant.
+     * @param piece La pièce cible pour la prise en passant.
+     */
+    public void setEnPassantTarget(Piece piece) {
+        this.enPassantTarget = piece;
+    }
+
+    /**
+     * Récupère la cible de prise en passant.
+     * @return La pièce cible pour la prise en passant.
      */
     public Piece getEnPassantTarget() {
         return enPassantTarget;

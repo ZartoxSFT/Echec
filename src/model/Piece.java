@@ -40,8 +40,11 @@ public abstract class Piece extends Observable implements Serializable {
      */
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        // S'assurer que la couleur est préservée
+        boolean savedColor = this.color;
         setImg();
         initializeMovementStrategy();
+        this.color = savedColor; // Restaurer la couleur d'origine
         if (currentCase != null) {
             currentCase.setPiece(this);
         }

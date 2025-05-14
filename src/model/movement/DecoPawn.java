@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Implémente la stratégie de mouvement du Pion.
- * Gère les mouvements standards, la prise en passant et la promotion.
+ * Classe décorant la stratégie de déplacement du pion.
+ * Hérite de la classe Decorator.
  */
-public class DecoPawn implements MovementStrategy {
+public class DecoPawn extends Decorator {
     private MovementStrategy wrapped;
 
     /**
@@ -19,6 +19,7 @@ public class DecoPawn implements MovementStrategy {
      * @param wrapped La stratégie de mouvement à décorer
      */
     public DecoPawn(MovementStrategy wrapped) {
+        super(wrapped);
         this.wrapped = wrapped;
     }
 

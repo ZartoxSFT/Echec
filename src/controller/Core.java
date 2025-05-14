@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
+import java.util.HashMap;
 
 import model.Move;
 import model.Piece;
@@ -337,7 +338,8 @@ public class Core extends Observable implements Runnable {
             plateau.getHasMoved(),
             isAIGame,
             ai != null && ai.isWhite(),
-            ai != null ? ai.getDifficulty() : 0
+            ai != null ? ai.getDifficulty() : 0,
+            plateau.getEnPassantTarget()
         );
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
@@ -346,34 +348,51 @@ public class Core extends Observable implements Runnable {
     }
 
     /**
-     * Charge un plateau.
-     * @param filePath Le chemin de fichier.
-     * @throws IOException Si une erreur de chargement survient.
-     * @throws ClassNotFoundException Si une classe n'est pas trouvée.
+     * Charge une partie sauvegardée.
+     * @param filePath Le chemin du fichier de sauvegarde
+     * @throws IOException En cas d'erreur de lecture
+     * @throws ClassNotFoundException Si la classe n'est pas trouvée
      */
     public void loadGame(String filePath) throws IOException, ClassNotFoundException {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             GameState gameState = (GameState) ois.readObject();
             
-            // Restaurer l'état du plateau
+            // Créer un nouveau plateau
             plateau = new Plateau();
+            
+            // Réinitialiser le plateau
+            plateau.getPieces().clear();
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    plateau.getCase(i, j).setPiece(null);
+                }
+            }
+            
+            // Restaurer les pièces
             for (Piece piece : gameState.getPieces()) {
                 plateau.getPieces().add(piece);
                 Case currentCase = piece.getCurrentCase();
-                plateau.getCase(currentCase.getX(), currentCase.getY()).setPiece(piece);
+                if (currentCase != null) {
+                    Case plateauCase = plateau.getCase(currentCase.getX(), currentCase.getY());
+                    plateauCase.setPiece(piece);
+                    piece.setCurrentCase(plateauCase);
+                }
             }
             
+            // Restaurer l'état du jeu
             plateau.setCurrentPlayerWhite(gameState.isCurrentPlayerWhite());
-            plateau.setHasMoved(gameState.getHasMoved());
+            plateau.setHasMoved(new HashMap<>(gameState.getHasMoved()));
+            plateau.setEnPassantTarget(gameState.getEnPassantTarget());
             
-            // Restaurer l'état de l'IA
-            isAIGame = gameState.isAIGame();
-            if (isAIGame) {
+            // Restaurer l'état de l'IA si nécessaire
+            this.isAIGame = gameState.isAIGame();
+            if (this.isAIGame) {
                 setAI(true, gameState.getAIDifficulty(), gameState.isAIWhite());
             } else {
                 setAI(false, 0, false);
             }
             
+            // Notifier les observateurs
             setChanged();
             notifyObservers();
         }

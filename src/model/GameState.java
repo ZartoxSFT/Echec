@@ -19,6 +19,7 @@ public class GameState implements Serializable {
     private boolean isAIGame;
     private boolean aiIsWhite;
     private int aiDifficulty;
+    private Piece enPassantTarget;
     
     /**
      * Constructeur de la classe GameState.
@@ -28,15 +29,17 @@ public class GameState implements Serializable {
      * @param isAIGame true si le jeu est en mode IA, false sinon.
      * @param aiIsWhite true si l'IA est blanche, false sinon.
      * @param aiDifficulty Le niveau de difficulté de l'IA.
+     * @param enPassantTarget La cible de prise en passant.
      */
     public GameState(List<Piece> pieces, boolean currentPlayerWhite, Map<Piece, Boolean> hasMoved,
-                    boolean isAIGame, boolean aiIsWhite, int aiDifficulty) {
+                    boolean isAIGame, boolean aiIsWhite, int aiDifficulty, Piece enPassantTarget) {
         this.pieces = new ArrayList<>(pieces);
         this.currentPlayerWhite = currentPlayerWhite;
         this.hasMoved = new HashMap<>(hasMoved);
         this.isAIGame = isAIGame;
         this.aiIsWhite = aiIsWhite;
         this.aiDifficulty = aiDifficulty;
+        this.enPassantTarget = enPassantTarget;
     }
     
     /**
@@ -85,5 +88,13 @@ public class GameState implements Serializable {
      */
     public int getAIDifficulty() {
         return aiDifficulty;
+    }
+    
+    /**
+     * Récupère la cible de prise en passant.
+     * @return La cible de prise en passant.
+     */
+    public Piece getEnPassantTarget() {
+        return enPassantTarget;
     }
 } 

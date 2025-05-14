@@ -8,10 +8,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Implémente la stratégie de mouvement du Roi.
+ * Classe décorant la stratégie de déplacement du roi.
  * Gère les mouvements standards et le roque.
+ * Hérite de la classe Decorator.
  */
-public class DecoKing implements MovementStrategy {
+public class DecoKing extends Decorator {
     private MovementStrategy wrapped;
 
     /**
@@ -19,9 +20,10 @@ public class DecoKing implements MovementStrategy {
      * @param wrapped La stratégie décorée à encapsuler.
      */
     public DecoKing(MovementStrategy wrapped) {
+        super(wrapped);
         this.wrapped = wrapped;
     }
-    
+
     /**
      * Récupère les mouvements valides pour une pièce.
      * @param piece La pièce à évaluer.

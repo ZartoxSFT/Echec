@@ -8,14 +8,15 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Classe décorant la stratégie de déplacement des pièces de type Cavalier.
+ * Classe décorant la stratégie de déplacement du cavalier.
  * Ajoute les déplacements en "L" possibles à la stratégie décorée.
- * Implémente la stratégie de déplacement MovementStrategy.
+ * Hérite de la classe Decorator.
  */
-public class DecoKnight implements MovementStrategy {
+public class DecoKnight extends Decorator {
     private MovementStrategy wrapped;
 
     public DecoKnight(MovementStrategy wrapped) {
+        super(wrapped);
         this.wrapped = wrapped;
     }
 

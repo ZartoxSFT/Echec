@@ -8,14 +8,15 @@ import java.util.ArrayList;
 import model.Case;
 
 /**
- * Classe décorant la stratégie de déplacement des pièces de type Dame.
+ * Classe décorant la stratégie de déplacement de la reine.
+ * Hérite de la classe Decorator.
  * Ajoute les déplacements horizontaux, verticaux et diagonaux possibles à la stratégie décorée grâce aux décorateurs DecoRook et DecoBishop.
- * Implémente la stratégie de déplacement MovementStrategy.
  */
-public class DecoQueen implements MovementStrategy {
+public class DecoQueen extends Decorator {
     private MovementStrategy wrapped;
 
     public DecoQueen(MovementStrategy wrapped) {
+        super(wrapped);
         this.wrapped = wrapped;
     }
 
