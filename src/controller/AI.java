@@ -7,25 +7,52 @@ import model.Case;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Classe implémentant l'intelligence artificielle du jeu d'échecs.
+ * Propose trois niveaux de difficulté :
+ * <ul>
+ *   <li>1 - Aléatoire : joue des coups au hasard</li>
+ *   <li>2 - Facile : privilégie les captures et les échecs</li>
+ *   <li>3 - Moyen : utilise l'algorithme Minimax avec une profondeur de 2</li>
+ * </ul>
+ */
 public class AI {
-    private int difficulty; // 1: Random, 2: Easy, 3: Medium
+    private int difficulty;
     private boolean isWhite;
     private Random random;
 
+    /**
+     * Constructeur de l'IA.
+     * @param difficulty Niveau de difficulté (1-3)
+     * @param isWhite true si l'IA joue les blancs, false sinon
+     */
     public AI(int difficulty, boolean isWhite) {
         this.difficulty = difficulty;
         this.isWhite = isWhite;
         this.random = new Random();
     }
 
+    /**
+     * Indique si l'IA joue les blancs.
+     * @return true si l'IA joue les blancs, false sinon
+     */
     public boolean isWhite() {
         return isWhite;
     }
 
+    /**
+     * Retourne le niveau de difficulté de l'IA.
+     * @return Le niveau de difficulté (1-3)
+     */
     public int getDifficulty() {
         return difficulty;
     }
 
+    /**
+     * Détermine le meilleur coup à jouer selon le niveau de difficulté.
+     * @param plateau L'état actuel du plateau
+     * @return Le coup choisi par l'IA
+     */
     public Move getBestMove(Plateau plateau) {
         switch (difficulty) {
             case 1: return getRandomMove(plateau);
@@ -35,6 +62,11 @@ public class AI {
         }
     }
 
+    /**
+     * Choisit un coup aléatoire parmi les coups valides.
+     * @param plateau L'état actuel du plateau
+     * @return Un coup aléatoire valide
+     */
     private Move getRandomMove(Plateau plateau) {
         List<Piece> pieces = plateau.getPieces();
         List<Piece> myPieces = pieces.stream()
@@ -55,8 +87,12 @@ public class AI {
         return null;
     }
 
+    /**
+     * Implémente une stratégie simple privilégiant les captures et les échecs.
+     * @param plateau L'état actuel du plateau
+     * @return Le meilleur coup selon la stratégie simple
+     */
     private Move getEasyMove(Plateau plateau) {
-        // Stratégie simple : privilégie les captures et les échecs
         Move bestMove = null;
         int bestScore = Integer.MIN_VALUE;
 
@@ -77,8 +113,12 @@ public class AI {
         return bestMove != null ? bestMove : getRandomMove(plateau);
     }
 
+    /**
+     * Implémente l'algorithme Minimax avec une profondeur de 2.
+     * @param plateau L'état actuel du plateau
+     * @return Le meilleur coup selon l'algorithme Minimax
+     */
     private Move getMediumMove(Plateau plateau) {
-        // Minimax avec profondeur 2
         Move bestMove = null;
         int bestScore = Integer.MIN_VALUE;
 
@@ -87,7 +127,6 @@ public class AI {
 
             List<int[]> validMoves = plateau.filterValidMoves(piece);
             for (int[] move : validMoves) {
-                // Simuler le coup
                 Case oldCase = piece.getCurrentCase();
                 Case newCase = plateau.getCase(move[0], move[1]);
                 Piece capturedPiece = newCase.getPiece();
@@ -98,7 +137,6 @@ public class AI {
 
                 int score = -minimax(plateau, 2, !isWhite, Integer.MIN_VALUE, Integer.MAX_VALUE);
 
-                // Annuler le coup
                 newCase.setPiece(capturedPiece);
                 oldCase.setPiece(piece);
                 piece.setCurrentCase(oldCase);

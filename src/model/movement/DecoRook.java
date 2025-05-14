@@ -6,13 +6,28 @@ import model.Case;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Implémente la stratégie de mouvement de la Tour.
+ * Gère les mouvements horizontaux et verticaux.
+ */
 public class DecoRook implements MovementStrategy {
     private MovementStrategy wrapped;
 
+    /**
+     * Constructeur du décorateur de tour.
+     * @param wrapped La stratégie de mouvement à décorer
+     */
     public DecoRook(MovementStrategy wrapped) {
         this.wrapped = wrapped;
     }
 
+    /**
+     * Récupère les mouvements valides pour une pièce.
+     * @param piece La pièce à évaluer.
+     * @param currentCase La case actuelle de la pièce.
+     * @param plateau Le plateau de jeu.
+     * @return La liste des mouvements valides.
+     */
     @Override
     public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();

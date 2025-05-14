@@ -8,6 +8,10 @@ import model.Move;
 import model.Piece;
 import model.Case;
 
+/**
+ * Classe implémentant l'interface GameUI pour l'affichage console.
+ * Gère l'affichage de l'échiquier, les commandes, les mouvements, etc.
+ */
 public class ConsoleUI implements GameUI {
     private Core core;
     private Scanner scanner;
@@ -46,6 +50,9 @@ public class ConsoleUI implements GameUI {
         askDisplayMode();
     }
 
+    /**
+     * Initialise la partie.
+     */
     @Override
     public void initialize() {
         System.out.println("=== Configuration de la partie ===");
@@ -55,6 +62,9 @@ public class ConsoleUI implements GameUI {
         startGameLoop();
     }
 
+    /**
+     * Configure le mode de jeu.
+     */
     private void configureGameMode() {
         System.out.println("1. Joueur vs Joueur");
         System.out.println("2. Joueur vs IA");
@@ -83,6 +93,12 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Récupère une entrée valide.
+     * @param min La valeur minimale.
+     * @param max La valeur maximale.
+     * @return La valeur entrée.
+     */
     private int getValidInput(int min, int max) {
         while (true) {
             try {
@@ -98,6 +114,9 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Démarre la boucle de jeu.
+     */
     private void startGameLoop() {
         while (running) {
             if (isAIGame && core.isWhiteTurn() == aiIsWhite) {
@@ -112,18 +131,28 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Gère le tour de l'IA.
+     */
     private void handleAITurn() {
         System.out.println("\nL'IA réfléchit...");
         core.playAIMove();
         displayBoard();
     }
 
+    /**
+     * Gère le tour du joueur.
+     */
     private void handlePlayerTurn() {
         System.out.print("\nCommande : ");
         String command = scanner.nextLine().trim().toLowerCase();
         processCommand(command);
     }
 
+    /**
+     * Vérifie si la partie est terminée.
+     * @return true si la partie est terminée, false sinon.
+     */
     private boolean checkGameEnd() {
         boolean whiteKingInCheck = core.getPlateau().isKingInCheck(true);
         boolean blackKingInCheck = core.getPlateau().isKingInCheck(false);
@@ -144,6 +173,10 @@ public class ConsoleUI implements GameUI {
         return false;
     }
 
+    /**
+     * Affiche le message de fin de partie.
+     * @param message Le message de fin de partie.
+     */
     private void displayEndGame(String message) {
         System.out.println(ANSI_RED + "\n╔════════════════════════════════╗");
         System.out.println("║    " + message + "    ║");
@@ -151,11 +184,17 @@ public class ConsoleUI implements GameUI {
         running = false;
     }
 
+    /**
+     * Affiche l'échiquier.
+     */
     @Override
     public void display() {
         displayBoard();
     }
 
+    /**
+     * Ferme le scanner et quitte le programme.
+     */
     @Override
     public void close() {
         scanner.close();
@@ -163,11 +202,19 @@ public class ConsoleUI implements GameUI {
         System.exit(0);
     }
 
+    /**
+     * Met à jour l'affichage.
+     * @param o L'objet observé.
+     * @param arg L'argument.
+     */
     @Override
     public void update(Observable o, Object arg) {
         // Cette méthode n'est plus nécessaire car nous gérons l'affichage directement
     }
 
+    /**
+     * Demande le mode d'affichage.
+     */
     private void askDisplayMode() {
         System.out.println("Choisissez le mode d'affichage :");
         System.out.println("1. Lettres (P, T, C, F, D, R)");
@@ -190,6 +237,11 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Récupère le symbole d'une pièce.
+     * @param piece La pièce à afficher.
+     * @return Le symbole de la pièce.
+     */
     private String getPieceSymbol(Piece piece) {
         if (piece == null) {
             // Case vide avec la même largeur qu'une pièce avec symbole
@@ -208,6 +260,11 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Récupère l'index d'une pièce.
+     * @param piece La pièce à afficher.
+     * @return L'index de la pièce.
+     */
     private int getPieceIndex(Piece piece) {
         if (piece instanceof model.pieces.King) return 0;
         if (piece instanceof model.pieces.Queen) return 1;
@@ -218,6 +275,9 @@ public class ConsoleUI implements GameUI {
         return 0;
     }
 
+    /**
+     * Affiche l'échiquier.
+     */
     @Override
     public void displayBoard() {
         clearScreen();
@@ -256,11 +316,18 @@ public class ConsoleUI implements GameUI {
         System.out.println("\nTour : " + ANSI_YELLOW + currentPlayer + ANSI_RESET);
     }
 
+    /**
+     * Efface l'écran.
+     */
     private void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
+    /**
+     * Traite une commande.
+     * @param command La commande à traiter.
+     */
     private void processCommand(String command) {
         if (command.isEmpty()) {
             return;
@@ -274,6 +341,10 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Traite un mouvement.
+     * @param command La commande à traiter.
+     */
     private void processMove(String command) {
         String[] parts = command.split(" ");
         if (parts.length != 2) {
@@ -316,12 +387,21 @@ public class ConsoleUI implements GameUI {
         displayBoard();
     }
 
+    /**
+     * Vérifie si la destination est valide.
+     * @param destination La destination à vérifier.
+     * @return true si la destination est valide, false sinon.
+     */
     private boolean isValidDestination(String destination) {
         return destination.length() == 2 &&
                destination.charAt(0) >= 'A' && destination.charAt(0) <= 'H' &&
                destination.charAt(1) >= '1' && destination.charAt(1) <= '8';
     }
 
+    /**
+     * Affiche les mouvements possibles pour une pièce.
+     * @param pieceStr La pièce à afficher.
+     */
     private void displayPossibleMoves(String pieceStr) {
         Piece piece = findPiece(pieceStr);
         if (piece == null) {
@@ -343,6 +423,11 @@ public class ConsoleUI implements GameUI {
         }
     }
 
+    /**
+     * Recherche une pièce.
+     * @param pieceStr La pièce à rechercher.
+     * @return La pièce trouvée ou null si elle n'est pas trouvée.
+     */
     private Piece findPiece(String pieceStr) {
         if (pieceStr == null || pieceStr.isEmpty()) {
             return null;

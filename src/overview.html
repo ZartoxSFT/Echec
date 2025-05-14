@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Vue d'ensemble du Jeu d'Échecs</title>
+</head>
+<body>
+    <h1>Jeu d'Échecs</h1>
+    <p>
+        Cette documentation couvre l'implémentation d'un jeu d'échecs en Java, utilisant une architecture MVC
+        (Modèle-Vue-Contrôleur) et plusieurs patterns de conception.
+    </p>
+
+    <h2>Structure du Projet</h2>
+    <h3>Package model</h3>
+    <p>
+        Contient les classes représentant les éléments du jeu :
+        <ul>
+            <li>Pièces (Roi, Reine, Tour, Fou, Cavalier, Pion)</li>
+            <li>Plateau de jeu</li>
+            <li>Mouvements et règles du jeu</li>
+        </ul>
+    </p>
+
+    <h3>Package view</h3>
+    <p>
+        Gère l'interface utilisateur :
+        <ul>
+            <li>Interface graphique (UI)</li>
+            <li>Interface console (ConsoleUI)</li>
+            <li>Timer pour les parties chronométrées</li>
+        </ul>
+    </p>
+
+    <h3>Package controller</h3>
+    <p>
+        Gère la logique du jeu :
+        <ul>
+            <li>Core : contrôleur principal</li>
+            <li>AI : intelligence artificielle avec plusieurs niveaux</li>
+        </ul>
+    </p>
+
+    <h2>Patterns de Conception Utilisés</h2>
+    <ul>
+        <li><b>MVC</b> : séparation des responsabilités entre Modèle, Vue et Contrôleur</li>
+        <li><b>Strategy</b> : pour les mouvements des pièces</li>
+        <li><b>Decorator</b> : pour combiner les mouvements (ex: Reine = Tour + Fou)</li>
+        <li><b>Observer</b> : pour la mise à jour de l'interface utilisateur</li>
+    </ul>
+
+    <h2>Fonctionnalités Principales</h2>
+    <ul>
+        <li>Toutes les règles des échecs (incluant les coups spéciaux)</li>
+        <li>Interface graphique et console</li>
+        <li>IA avec plusieurs niveaux de difficulté</li>
+        <li>Sauvegarde et chargement des parties</li>
+        <li>Timer pour les parties chronométrées</li>
+        <li>Détection de l'échec, mat et pat</li>
+    </ul>
+
+    <h2>Sérialisation</h2>
+    <p>
+        Le jeu implémente la sérialisation pour permettre la sauvegarde et le chargement des parties.
+        Les classes principales implémentent l'interface Serializable et gèrent correctement les
+        références circulaires et les champs transient.
+    </p>
+
+    @author Équipe de développement
+    @version 1.0
+</body>
+</html> 

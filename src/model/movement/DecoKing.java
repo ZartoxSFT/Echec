@@ -7,8 +7,28 @@ import model.Case;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Implémente la stratégie de mouvement du Roi.
+ * Gère les mouvements standards et le roque.
+ */
 public class DecoKing implements MovementStrategy {
+    private MovementStrategy wrapped;
 
+    /**
+     * Constructeur de la classe DecoKing.
+     * @param wrapped La stratégie décorée à encapsuler.
+     */
+    public DecoKing(MovementStrategy wrapped) {
+        this.wrapped = wrapped;
+    }
+    
+    /**
+     * Récupère les mouvements valides pour une pièce.
+     * @param piece La pièce à évaluer.
+     * @param currentCase La case actuelle de la pièce.
+     * @param plateau Le plateau de jeu.
+     * @return La liste des mouvements valides.
+     */
     @Override
     public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();
@@ -62,6 +82,13 @@ public class DecoKing implements MovementStrategy {
         return moves;
     }
 
+    /**
+     * Ajoute les mouvements de roque possibles à la liste des mouvements.
+     * @param king Le roi
+     * @param currentCase La case actuelle du roi
+     * @param plateau Le plateau de jeu
+     * @param moves La liste des mouvements à compléter
+     */
     private void addCastlingMoves(Piece king, Case currentCase, Plateau plateau, List<int[]> moves) {
         // Vérifier si le roi n'a pas bougé
         if (plateau.getHasMoved().getOrDefault(king, false)) return;
@@ -77,6 +104,14 @@ public class DecoKing implements MovementStrategy {
         }
     }
 
+    /**
+     * Vérifie si le roque est possible dans une direction donnée.
+     * @param king Le roi
+     * @param currentCase La case actuelle du roi
+     * @param plateau Le plateau de jeu
+     * @param isKingSide true pour le petit roque, false pour le grand roque
+     * @return true si le roque est possible
+     */
     private boolean canCastle(Piece king, Case currentCase, Plateau plateau, boolean isKingSide) {
         int rookY = isKingSide ? 7 : 0; // Colonne de la tour
         int step = isKingSide ? 1 : -1; // Direction du déplacement

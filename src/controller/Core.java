@@ -18,6 +18,11 @@ import model.pieces.King;
 import model.Case;
 import model.GameState;
 
+/**
+ * Classe principale du jeu d'échecs.
+ * Gère le plateau, l'IA, les mouvements, etc.
+ * Implémente l'Observable pour notifier les observateurs lorsque le plateau est mis à jour.
+ */
 public class Core extends Observable implements Runnable {
     private Move moveBuffer = null;
     private boolean running = true;
@@ -26,12 +31,22 @@ public class Core extends Observable implements Runnable {
     private boolean isAIGame = false;
     private boolean currentPlayer; // true for white, false for black
 
+    /**
+     * Constructeur de la classe Core.
+     * Initialise le plateau et le joueur actif.
+     */
     public Core() {
         this.plateau = new Plateau();
         plateau.initPieces();
         currentPlayer = true; // Le blanc commence
     }
 
+    /**
+     * 
+     * @param enabled
+     * @param difficulty
+     * @param aiIsWhite
+     */
     public void setAI(boolean enabled, int difficulty, boolean aiIsWhite) {
         if (enabled) {
             this.ai = new AI(difficulty, aiIsWhite);
@@ -42,11 +57,19 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Initialise le jeu.
+     */
     public void initGame() {
         Thread gameThread = new Thread(this);
         gameThread.start();
     }
 
+    /**
+     * Effectue un mouvement de pièce.
+     * @param piece La pièce à déplacer.
+     * @param newCase La case de destination.
+     */
     public void movePiece(Piece piece, Case newCase) {
         if (piece == null || newCase == null) return;
 
@@ -128,6 +151,12 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Gestion du roque.
+     * @param king Le roi à déplacer.
+     * @param oldCase La case initiale du roi.
+     * @param newCase La case de destination du roi.
+     */
     private void handleCastling(Piece king, Case oldCase, Case newCase) {
         boolean isKingSide = newCase.getY() > oldCase.getY();
         int rookOldY = isKingSide ? 7 : 0;
@@ -145,6 +174,12 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Gestion de la capture en passant.
+     * @param pawn Le pion à déplacer.
+     * @param oldCase La case initiale du pion.
+     * @param newCase La case de destination du pion.
+     */
     private void handleEnPassant(Piece pawn, Case oldCase, Case newCase) {
         // Capture en passant
         if (newCase.getPiece() == null && Math.abs(newCase.getY() - oldCase.getY()) == 1) {
@@ -166,6 +201,9 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Vérifie les conditions de fin de partie.
+     */
     private void checkGameEndConditions() {
         boolean isOpponentWhite = !plateau.isCurrentPlayerWhite();
         if (plateau.isKingInCheck(isOpponentWhite)) {
@@ -184,20 +222,37 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Récupère la pièce à une position donnée.
+     * @param x La coordonnée x.
+     * @param y La coordonnée y.
+     * @return La pièce à la position (x, y) ou null si la case est vide.
+     */
     public Piece getPieceAt(int x, int y) {
         Case targetCase = plateau.getCase(x, y);
         return targetCase != null ? targetCase.getPiece() : null;
     }
 
+    /**
+     * Effectue un mouvement.
+     * @param move Le mouvement à effectuer.
+     */
     public synchronized void doMove(Move move) {
         this.moveBuffer = move;
         this.notify();
     }
 
+    /**
+     * Vérifie si c'est au tour du joueur blanc.
+     * @return true si c'est au tour du joueur blanc, false sinon.
+     */
     public boolean isWhiteTurn() {
         return plateau.isCurrentPlayerWhite();
     }
 
+    /**
+     * Exécute le mouvement.
+     */
     @Override
     public void run() {
         while (running) {
@@ -219,19 +274,32 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Arrête le jeu.
+     */
     public void stop() {
         running = false;
     }
 
+    /**
+     * Récupère le plateau.
+     * @return Le plateau.
+     */
     public Plateau getPlateau() {
         return plateau;
     }
 
+    /**
+     * Force la mise à jour.
+     */
     public void forceUpdate() {
         setChanged();
         notifyObservers();
     }
 
+    /**
+     * Joue un coup de l'IA.
+     */
     public void playAIMove() {
         if (ai == null || !isAIGame) return;
 
@@ -241,6 +309,11 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Récupère les mouvements possibles pour une pièce.
+     * @param piece La pièce à évaluer.
+     * @return La liste des mouvements possibles.
+     */
     public List<Move> getPossibleMoves(Piece piece) {
         List<Move> moves = new ArrayList<>();
         List<int[]> validMoves = plateau.filterValidMoves(piece);
@@ -252,6 +325,11 @@ public class Core extends Observable implements Runnable {
         return moves;
     }
 
+    /**
+     * Sauvegarde le plateau.
+     * @param filePath Le chemin de fichier.
+     * @throws IOException Si une erreur de sauvegarde survient.
+     */
     public void saveGame(String filePath) throws IOException {
         GameState gameState = new GameState(
             plateau.getPieces(),
@@ -267,6 +345,12 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Charge un plateau.
+     * @param filePath Le chemin de fichier.
+     * @throws IOException Si une erreur de chargement survient.
+     * @throws ClassNotFoundException Si une classe n'est pas trouvée.
+     */
     public void loadGame(String filePath) throws IOException, ClassNotFoundException {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             GameState gameState = (GameState) ois.readObject();
@@ -295,6 +379,13 @@ public class Core extends Observable implements Runnable {
         }
     }
 
+    /**
+     * Crée une pièce.
+     * @param type Le type de pièce.
+     * @param isWhite La couleur de la pièce.
+     * @param targetCase La case de destination.
+     * @return La pièce créée.
+     */
     private Piece createPiece(String type, boolean isWhite, Case targetCase) {
         return switch (type) {
             case "King" -> new model.pieces.King(isWhite, targetCase);

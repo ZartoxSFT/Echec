@@ -4,20 +4,35 @@ import model.Piece;
 import model.Case;
 import model.movement.DecoKnight;
 
+/**
+ * Classe représentant un Cavalier dans le jeu d'échecs.
+ * Le cavalier se déplace en L (2 cases dans une direction puis 1 case perpendiculairement).
+ */
 public class Knight extends Piece {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructeur du Cavalier.
+     * @param color La couleur de la pièce (true pour blanc, false pour noir)
+     * @param initialCase La case initiale de la pièce
+     */
     public Knight(boolean color, Case initialCase) {
         super(new DecoKnight(null), initialCase); // Utilisation du décorateur DecoKnight
         this.color = color;
         setImg(); // Initialisation de l'image du cavalier
     }
 
+    /**
+     * Initialise la stratégie de déplacement du Cavalier.
+     */
     @Override
     protected void initializeMovementStrategy() {
         this.movementStrategy = new DecoKnight(null);
     }
 
+    /**
+     * Définit l'image du Cavalier.
+     */
     @Override
     public void setImg() {
         String path = "src/img/" + (this.color ? "w_" : "b_") + "knight.png";
@@ -31,11 +46,19 @@ public class Knight extends Piece {
         this.notifyObservers();
     }
 
+    /**
+     * Récupère la couleur de la pièce.
+     * @return La couleur de la pièce.
+     */
     @Override
     public boolean getColor() {
         return this.color;
     }
 
+    /**
+     * Définit la couleur de la pièce.
+     * @param color La couleur de la pièce.
+     */
     @Override
     public void setColor(boolean color) {
         this.color = color;

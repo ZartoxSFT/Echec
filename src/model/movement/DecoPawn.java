@@ -7,9 +7,17 @@ import model.Case;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Implémente la stratégie de mouvement du Pion.
+ * Gère les mouvements standards, la prise en passant et la promotion.
+ */
 public class DecoPawn implements MovementStrategy {
     private MovementStrategy wrapped;
 
+    /**
+     * Constructeur du décorateur de pion.
+     * @param wrapped La stratégie de mouvement à décorer
+     */
     public DecoPawn(MovementStrategy wrapped) {
         this.wrapped = wrapped;
     }

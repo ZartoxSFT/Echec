@@ -7,6 +7,11 @@ import model.Case;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Classe décorant la stratégie de déplacement des pièces de type Cavalier.
+ * Ajoute les déplacements en "L" possibles à la stratégie décorée.
+ * Implémente la stratégie de déplacement MovementStrategy.
+ */
 public class DecoKnight implements MovementStrategy {
     private MovementStrategy wrapped;
 
@@ -14,6 +19,13 @@ public class DecoKnight implements MovementStrategy {
         this.wrapped = wrapped;
     }
 
+    /**
+     * Récupère les mouvements valides pour une pièce.
+     * @param piece La pièce à évaluer.
+     * @param currentCase La case actuelle de la pièce.
+     * @param plateau Le plateau de jeu.
+     * @return La liste des mouvements valides.
+     */
     @Override
     public List<int[]> getValidMoves(Piece piece, Case currentCase, Plateau plateau) {
         List<int[]> moves = new ArrayList<>();

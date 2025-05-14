@@ -6,6 +6,11 @@ import java.util.*;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+
+/**
+ * Classe représentant le plateau de jeu.
+ * Implémente la sérialisation.
+ */
 public class Plateau {
     private List<Piece> pieces;
     private Move moveBuffer;
@@ -17,6 +22,9 @@ public class Plateau {
     private boolean isCheckingThreats = false; // Drapeau de sécurité pour vérifier les menaces et éviter les boucles infinies
 
 
+    /**
+     * Enumération des directions de déplacement.
+     */
     public enum Direction {
         UP(-1, 0), DOWN(1, 0), LEFT(0, -1), RIGHT(0, 1),
         UP_LEFT(-1, -1), UP_RIGHT(-1, 1), DOWN_LEFT(1, -1), DOWN_RIGHT(1, 1);
@@ -30,11 +38,17 @@ public class Plateau {
         }
     }
 
+    /**
+     * Constructeur de la classe Plateau.
+     */
     public Plateau() {
         pieces = new ArrayList<>();
         initBoard();
     }
 
+    /**
+     * Initialise les pièces sur le plateau.
+     */
     public void initPieces() {
         // Ajouter les rois
         addPiece(new model.pieces.King(true, getCase(7, 4)));  // Roi blanc
@@ -69,6 +83,10 @@ public class Plateau {
         }
     }
     
+    /**
+     * Ajoute une pièce au plateau.
+     * @param piece La pièce à ajouter.
+     */
     private void addPiece(Piece piece) {
         Case targetCase = piece.getCurrentCase(); // Récupérer la case actuelle de la pièce
         if (targetCase == null) {
@@ -81,6 +99,9 @@ public class Plateau {
         targetCase.setPiece(piece); // Associer la pièce à la case
     }
 
+    /**
+     * Initialise le plateau.
+     */
     private void initBoard() {
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -90,6 +111,12 @@ public class Plateau {
         }
     }
 
+    /**
+     * Récupère une case à partir de ses coordonnées.
+     * @param x La coordonnée x de la case.
+     * @param y La coordonnée y de la case.
+     * @return La case correspondante.
+     */
     public Case getCase(int x, int y) {
         for (Case c : caseMap.keySet()) {
             Point p = caseMap.get(c);
@@ -100,6 +127,12 @@ public class Plateau {
         return null;
     }
 
+    /**
+     * Récupère une case relative à partir d'une case source et d'une direction.
+     * @param source La case source.
+     * @param d La direction.
+     * @return La case relative.
+     */
     public Case getCaseRelative(Case source, Direction d) {
         Point p = caseMap.get(source);
         if (p == null) return null;
@@ -110,27 +143,51 @@ public class Plateau {
         return getCase(newX, newY); // Utilise directement la méthode getCase
     }  
 
+    /**
+     * Vérifie si c'est au joueur blanc de jouer.
+     * @return true si c'est au joueur blanc de jouer, false sinon.
+     */
     public boolean isCurrentPlayerWhite() {
         return currentPlayerIsWhite;
     }
-    
+
+    /**
+     * Définit si c'est au joueur blanc de jouer.
+     * @param currentPlayerIsWhite true si c'est au joueur blanc de jouer, false sinon.
+     */
     public void setCurrentPlayerWhite(boolean currentPlayerIsWhite) {
         this.currentPlayerIsWhite = currentPlayerIsWhite;
     }    
 
+    /**
+     * Récupère le map associant chaque pièce à un booléen indiquant si elle a déjà bougé.
+     * @return Le map associant chaque pièce à un booléen indiquant si elle a déjà bougé.
+     */
     public Map<Piece, Boolean> getHasMoved() {
         return hasMoved;
     }
 
+    /**
+     * Définit le map associant chaque pièce à un booléen indiquant si elle a déjà bougé.
+     * @param newHasMoved Le nouveau map associant chaque pièce à un booléen indiquant si elle a déjà bougé.
+     */
     public void setHasMoved(Map<Piece, Boolean> newHasMoved) {
         this.hasMoved = new HashMap<>(newHasMoved);
     }
 
+    /**
+     * Récupère la liste des pièces sur le plateau.
+     * @return La liste des pièces.
+     */
     public List<Piece> getPieces() {
         return pieces;
     }
     
-    
+    /**
+     * Promouvoir un pion.
+     * @param pawn Le pion à promouvoir.
+     * @param pieces La liste des pièces sur le plateau.
+     */
     public void promotePawn(Piece pawn, List<Piece> pieces) {
         System.out.println("Promotion du pion !");
     
@@ -208,6 +265,12 @@ public class Plateau {
         System.out.println("Case mise à jour : " + pawnCase.getPiece());
     }
 
+    /**
+     * Met à jour la cible pour la capture en passant.
+     * @param pawn Le pion impliqué.
+     * @param startX La coordonnée x de la case de départ.
+     * @param endX La coordonnée x de la case d'arrivée.
+     */
     public void updateEnPassantTarget(Piece pawn, int startX, int endX) {
         if (pawn instanceof model.pieces.Pawn && Math.abs(startX - endX) == 2) {
             enPassantTarget = pawn; // Marquer le pion comme cible
@@ -215,11 +278,20 @@ public class Plateau {
             enPassantTarget = null; // Réinitialiser si ce n'est pas un mouvement de deux cases
         }
     }
-    
+
+    /**
+     * Récupère la cible pour la capture en passant.
+     * @return La cible pour la capture en passant.
+     */
     public Piece getEnPassantTarget() {
         return enPassantTarget;
     }
-    
+
+    /**
+     * Vérifie si le roi est en échec.
+     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.
+     * @return true si le roi est en échec, false sinon.
+     */
     public boolean isKingInCheck(boolean whiteKing) {
         if (isCheckingThreats) {
             return false; // Évite la récursion infinie
@@ -259,7 +331,12 @@ public class Plateau {
     
         return false;
     }
-    
+
+    /**
+     * Vérifie si le roi est en échec et mat.
+     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.
+     * @return true si le roi est en échec et mat, false sinon.
+     */
     public boolean isCheckMate(boolean whiteKing) {
         for (Case c : caseMap.keySet()) {
             Piece p = c.getPiece();
@@ -292,7 +369,13 @@ public class Plateau {
         }
         return true;
     }  
-    
+
+    /**
+     * Vérifie si une case est menacée.
+     * @param targetCase La case à vérifier.
+     * @param byWhite true si la case est menacée par un joueur blanc, false si c'est un joueur noir.
+     * @return true si la case est menacée, false sinon.
+     */
     public boolean isCaseThreatened(Case targetCase, boolean byWhite) {
         if (isCheckingThreats) {
             return false; // Évite la récursion infinie
@@ -316,6 +399,11 @@ public class Plateau {
         return false;
     }
 
+    /**
+     * Filtre les mouvements valides pour une pièce.
+     * @param piece La pièce à filtrer.
+     * @return La liste des mouvements valides.
+     */
     public List<int[]> filterValidMoves(Piece piece) {
         List<int[]> validMoves = new ArrayList<>();
         List<int[]> possibleMoves = piece.getValidMoves(this);
@@ -349,6 +437,11 @@ public class Plateau {
         return validMoves;
     }
 
+    /**
+     * Vérifie si le jeu est un pat.
+     * @param whitePlayer true si c'est le joueur blanc, false si c'est le joueur noir.
+     * @return true si le jeu est un pat, false sinon.
+     */
     public boolean isStalemate(boolean whitePlayer) {
         // Si le roi est en échec, ce n'est pas un pat
         if (isKingInCheck(whitePlayer)) {
@@ -369,6 +462,10 @@ public class Plateau {
         return true;
     }
 
+    /**
+     * Vérifie si le matériel est insuffisant.
+     * @return true si le matériel est insuffisant, false sinon.
+     */
     public boolean isInsufficientMaterial() {
         int whiteBishops = 0, blackBishops = 0;
         int whiteKnights = 0, blackKnights = 0;

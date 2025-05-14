@@ -4,12 +4,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
+/**
+ * Fenêtre de dialogue pour configurer le mode de jeu.
+ */
 public class GameModeDialog extends JDialog {
     private int selectedMinutes = 10; // Valeur par défaut pour le timer
     private boolean isAIGame = false;
     private boolean aiIsWhite = false;
     private int aiDifficulty = 1;
 
+    /**
+     * Constructeur de la fenêtre de dialogue.
+     * @param parent Le parent de la fenêtre.
+     */
     public GameModeDialog(JFrame parent) {
         super(parent, "Configuration de la partie", true);
         setLayout(new BorderLayout(10, 10));
@@ -121,18 +128,34 @@ public class GameModeDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    /**
+     * Récupère les minutes sélectionnées.
+     * @return Les minutes sélectionnées.
+     */
     public int getSelectedMinutes() {
         return selectedMinutes;
     }
 
+    /**
+     * Vérifie si le mode de jeu est en IA.
+     * @return true si le mode de jeu est en IA, false sinon.
+     */
     public boolean isAIGame() {
         return isAIGame;
     }
 
+    /**
+     * Vérifie si l'IA joue les blancs.
+     * @return true si l'IA joue les blancs, false sinon.
+     */
     public boolean isAIWhite() {
         return aiIsWhite;
     }
 
+    /**
+     * Récupère la difficulté de l'IA.
+     * @return La difficulté de l'IA.
+     */
     public int getAIDifficulty() {
         return aiDifficulty;
     }
