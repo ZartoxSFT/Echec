@@ -5,11 +5,17 @@ import model.Case;
 import model.movement.DecoRook;
 
 public class Rook extends Piece {
+    private static final long serialVersionUID = 1L;
 
     public Rook(boolean color, Case initialCase) {
         super(new DecoRook(null), initialCase); // Utilisation du décorateur DecoRook
         this.color = color;
         setImg(); // Initialisation de l'image de la tour
+    }
+
+    @Override
+    protected void initializeMovementStrategy() {
+        this.movementStrategy = new DecoRook(null);
     }
 
     @Override

@@ -4,14 +4,19 @@ import model.Piece;
 import model.Case;
 import model.movement.DecoKing;
 
-
 public class King extends Piece {
+    private static final long serialVersionUID = 1L;
 
     public King(boolean color, Case initialCase) {
         // Utilisation de DecoKing pour définir les mouvements du roi
         super(new DecoKing(), initialCase);  // Par exemple, DecoRook peut être un bon point de départ
         this.color = color;
         setImg(); // Initialisation de l'image du roi
+    }
+
+    @Override
+    protected void initializeMovementStrategy() {
+        this.movementStrategy = new DecoKing();
     }
 
     @Override

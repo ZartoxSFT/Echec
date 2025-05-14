@@ -122,6 +122,10 @@ public class Plateau {
         return hasMoved;
     }
 
+    public void setHasMoved(Map<Piece, Boolean> newHasMoved) {
+        this.hasMoved = new HashMap<>(newHasMoved);
+    }
+
     public List<Piece> getPieces() {
         return pieces;
     }

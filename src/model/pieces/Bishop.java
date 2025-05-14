@@ -5,11 +5,17 @@ import model.Case;
 import model.movement.DecoBishop;
 
 public class Bishop extends Piece {
+    private static final long serialVersionUID = 1L;
 
     public Bishop(boolean color, Case initialCase) {
         super(new DecoBishop(null), initialCase); // Utilisation du décorateur DecoBishop
         this.color = color;
         setImg(); // Initialisation de l'image du fou
+    }
+
+    @Override
+    protected void initializeMovementStrategy() {
+        this.movementStrategy = new DecoBishop(null);
     }
 
     @Override

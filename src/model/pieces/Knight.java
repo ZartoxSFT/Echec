@@ -5,11 +5,17 @@ import model.Case;
 import model.movement.DecoKnight;
 
 public class Knight extends Piece {
+    private static final long serialVersionUID = 1L;
 
     public Knight(boolean color, Case initialCase) {
         super(new DecoKnight(null), initialCase); // Utilisation du décorateur DecoKnight
         this.color = color;
         setImg(); // Initialisation de l'image du cavalier
+    }
+
+    @Override
+    protected void initializeMovementStrategy() {
+        this.movementStrategy = new DecoKnight(null);
     }
 
     @Override

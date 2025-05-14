@@ -22,6 +22,10 @@ public class AI {
         return isWhite;
     }
 
+    public int getDifficulty() {
+        return difficulty;
+    }
+
     public Move getBestMove(Plateau plateau) {
         switch (difficulty) {
             case 1: return getRandomMove(plateau);

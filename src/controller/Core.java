@@ -5,12 +5,18 @@ import java.util.List;
 import java.util.Observable;
 import java.awt.Color;
 import java.util.stream.Collectors;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 
 import model.Move;
 import model.Piece;
 import model.Plateau;
 import model.pieces.King;
 import model.Case;
+import model.GameState;
 
 public class Core extends Observable implements Runnable {
     private Move moveBuffer = null;
@@ -244,5 +250,60 @@ public class Core extends Observable implements Runnable {
         }
         
         return moves;
+    }
+
+    public void saveGame(String filePath) throws IOException {
+        GameState gameState = new GameState(
+            plateau.getPieces(),
+            plateau.isCurrentPlayerWhite(),
+            plateau.getHasMoved(),
+            isAIGame,
+            ai != null && ai.isWhite(),
+            ai != null ? ai.getDifficulty() : 0
+        );
+
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(gameState);
+        }
+    }
+
+    public void loadGame(String filePath) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+            GameState gameState = (GameState) ois.readObject();
+            
+            // Restaurer l'état du plateau
+            plateau = new Plateau();
+            for (Piece piece : gameState.getPieces()) {
+                plateau.getPieces().add(piece);
+                Case currentCase = piece.getCurrentCase();
+                plateau.getCase(currentCase.getX(), currentCase.getY()).setPiece(piece);
+            }
+            
+            plateau.setCurrentPlayerWhite(gameState.isCurrentPlayerWhite());
+            plateau.setHasMoved(gameState.getHasMoved());
+            
+            // Restaurer l'état de l'IA
+            isAIGame = gameState.isAIGame();
+            if (isAIGame) {
+                setAI(true, gameState.getAIDifficulty(), gameState.isAIWhite());
+            } else {
+                setAI(false, 0, false);
+            }
+            
+            setChanged();
+            notifyObservers();
+        }
+    }
+
+    private Piece createPiece(String type, boolean isWhite, Case targetCase) {
+        return switch (type) {
+            case "King" -> new model.pieces.King(isWhite, targetCase);
+            case "Queen" -> new model.pieces.Queen(isWhite, targetCase);
+            case "Rook" -> new model.pieces.Rook(isWhite, targetCase);
+            case "Bishop" -> new model.pieces.Bishop(isWhite, targetCase);
+            case "Knight" -> new model.pieces.Knight(isWhite, targetCase);
+            case "Pawn" -> new model.pieces.Pawn(isWhite, targetCase);
+            default -> null;
+        };
     }
 }

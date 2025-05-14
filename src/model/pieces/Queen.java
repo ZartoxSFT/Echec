@@ -5,11 +5,17 @@ import model.Case;
 import model.movement.DecoQueen;
 
 public class Queen extends Piece {
+    private static final long serialVersionUID = 1L;
 
     public Queen(boolean color, Case initialCase) {
         super(new DecoQueen(null), initialCase); // La reine combine les mouvements de la tour et du fou
         this.color = color;
         setImg(); // Initialisation de l'image de la reine
+    }
+
+    @Override
+    protected void initializeMovementStrategy() {
+        this.movementStrategy = new DecoQueen(null);
     }
 
     @Override

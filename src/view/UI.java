@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.List;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 import controller.Core;
 import model.Move;
@@ -237,6 +239,93 @@ public class UI extends JFrame implements GameUI {
         topPanel.setPreferredSize(new Dimension(BOARD_SIZE, 150));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Panel pour les boutons de sauvegarde/chargement
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JButton saveButton = new JButton("Sauvegarder la partie");
+        JButton loadButton = new JButton("Charger une partie");
+        
+        // Personnalisation des boutons
+        saveButton.setFont(new Font("Arial", Font.BOLD, 14));
+        loadButton.setFont(new Font("Arial", Font.BOLD, 14));
+        saveButton.setPreferredSize(new Dimension(160, 30));
+        loadButton.setPreferredSize(new Dimension(160, 30));
+        
+        saveButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Sauvegarder la partie");
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                public boolean accept(File f) {
+                    return f.isDirectory() || f.getName().toLowerCase().endsWith(".chess");
+                }
+                public String getDescription() {
+                    return "Fichiers de partie d'échecs (*.chess)";
+                }
+            });
+            
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                String filePath = fileChooser.getSelectedFile().getPath();
+                if (!filePath.toLowerCase().endsWith(".chess")) {
+                    filePath += ".chess";
+                }
+                try {
+                    core.saveGame(filePath);
+                    JOptionPane.showMessageDialog(this, 
+                        "Partie sauvegardée avec succès !",
+                        "Sauvegarde", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Erreur lors de la sauvegarde : " + ex.getMessage(),
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        loadButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Charger une partie");
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                public boolean accept(File f) {
+                    return f.isDirectory() || f.getName().toLowerCase().endsWith(".chess");
+                }
+                public String getDescription() {
+                    return "Fichiers de partie d'échecs (*.chess)";
+                }
+            });
+            
+            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    core.loadGame(fileChooser.getSelectedFile().getPath());
+                    if (gameTimer != null) {
+                        gameTimer.stopTimer();
+                    }
+                    update(core, null);
+                    JOptionPane.showMessageDialog(this, 
+                        "Partie chargée avec succès !",
+                        "Chargement", 
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Erreur lors du chargement : " + ex.getMessage(),
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+                } catch (ClassNotFoundException ex) {
+                    JOptionPane.showMessageDialog(this,
+                        "Erreur lors du chargement : Format de fichier invalide",
+                        "Erreur",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        buttonPanel.add(saveButton);
+        buttonPanel.add(Box.createHorizontalStrut(20)); // Espace entre les boutons
+        buttonPanel.add(loadButton);
+        topPanel.add(buttonPanel);
+        topPanel.add(Box.createVerticalStrut(10));
+
         // Panel pour le timer
         JPanel timerPanel = new JPanel();
         timerPanel.setLayout(new BoxLayout(timerPanel, BoxLayout.Y_AXIS));
@@ -374,7 +463,7 @@ public class UI extends JFrame implements GameUI {
             Move move = new Move(selectedPiece, targetCase);
 
             if (move.isMoveValid(core.getPlateau())) {
-                core.doMove(move);
+            core.doMove(move);
                 if (gameTimer != null) {
                     gameTimer.switchTurn();
                 }
@@ -396,8 +485,8 @@ public class UI extends JFrame implements GameUI {
             clearMoveIndicators();
             
             // Réinitialiser toutes les cases à leur couleur normale et masquer les overlays d'échec
-            for (int i = 0; i < 8; i++) {
-                for (int j = 0; j < 8; j++) {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
                     squares[i][j].setBackground((i + j) % 2 == 0 ? LIGHT_SQUARE : DARK_SQUARE);
                     setCheckHighlight(i, j, false);
                     pieceLabels[i][j].setIcon(null);
@@ -410,12 +499,12 @@ public class UI extends JFrame implements GameUI {
             Case whiteKingCase = null;
             Case blackKingCase = null;
 
-            // Met à jour les pièces sur l'échiquier
+    // Met à jour les pièces sur l'échiquier
             if (core != null && core.getPlateau() != null && core.getPlateau().getPieces() != null) {
                 for (Piece piece : core.getPlateau().getPieces()) {
                     if (piece != null && piece.getImg() != null && piece.getCurrentCase() != null) {
-                        ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
-                                .getImage()
+            ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
+                    .getImage()
                                 .getScaledInstance(CASE_SIZE, CASE_SIZE, Image.SCALE_SMOOTH));
                         int x = piece.getCurrentCase().getX();
                         int y = piece.getCurrentCase().getY();
