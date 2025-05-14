@@ -8,6 +8,7 @@ import java.util.Observer;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.List;
+import java.awt.image.BufferedImage;
 
 import controller.Core;
 import model.Move;
@@ -16,7 +17,9 @@ import model.Case;
 
 public class UI extends JFrame implements GameUI {
     private Core core;
-    private JLabel[][] tab = new JLabel[8][8];
+    private JLayeredPane[][] squares = new JLayeredPane[8][8];
+    private JLabel[][] pieceLabels = new JLabel[8][8];
+    private JLabel[][] moveIndicators = new JLabel[8][8];
     private JLabel labelTour = new JLabel("Tour : Blancs", SwingConstants.CENTER);
     private JPanel capturedPiecesPanel = new JPanel();
     private static final int CASE_SIZE = 80; // Taille fixe d'une case
@@ -24,14 +27,154 @@ public class UI extends JFrame implements GameUI {
     private Piece selectedPiece = null;
     private List<int[]> possibleMoves = new ArrayList<>();
     private GameTimer gameTimer; // Ajout du timer
+    private static final Color POSSIBLE_MOVE_COLOR = new Color(0, 255, 0, 100);
+    private static final Color CAPTURE_MOVE_COLOR = new Color(255, 0, 0, 100);
+    private static final Color SPECIAL_MOVE_COLOR = new Color(0, 0, 255, 100);
+    private static final Color CHECK_COLOR = new Color(255, 0, 0, 160);
+    private static final Color CHECK_COLOR_DARK = new Color(200, 0, 0, 128);
+    private static final String ASSETS_PATH = "src/img/";
+    private ImageIcon dotIcon;
+    private ImageIcon crossIcon;
+    private ImageIcon circleIcon;
+    private static final Color LIGHT_SQUARE = new Color(245, 245, 220);
+    private static final Color DARK_SQUARE = new Color(120, 59, 19);
+    private JPanel[][] checkOverlays = new JPanel[8][8];
 
     public UI(Core core) {
         super("Échiquier");
         this.core = core;
         this.core.addObserver(this);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setMinimumSize(new Dimension(BOARD_SIZE + 100, BOARD_SIZE + 200));
+        this.setMinimumSize(new Dimension(BOARD_SIZE + 200, BOARD_SIZE + 300));
+        this.setPreferredSize(new Dimension(BOARD_SIZE + 200, BOARD_SIZE + 300));
         this.setLocationRelativeTo(null);
+        loadMoveIndicators();
+    }
+
+    private void loadMoveIndicators() {
+        try {
+            dotIcon = new ImageIcon(ASSETS_PATH + "move.png");
+            crossIcon = new ImageIcon(ASSETS_PATH + "capture.png");
+            circleIcon = new ImageIcon(ASSETS_PATH + "s_move.png");
+            
+            // Redimensionner les icônes avec une taille plus petite pour éviter de masquer les pièces
+            dotIcon = resizeImageIcon(dotIcon, CASE_SIZE/2, CASE_SIZE/2);
+            crossIcon = resizeImageIcon(crossIcon, CASE_SIZE/2, CASE_SIZE/2);
+            circleIcon = resizeImageIcon(circleIcon, CASE_SIZE/2, CASE_SIZE/2);
+        } catch (Exception e) {
+            System.err.println("Erreur lors du chargement des indicateurs : " + e.getMessage());
+            createFallbackIndicators();
+        }
+    }
+
+    private ImageIcon resizeImageIcon(ImageIcon icon, int width, int height) {
+        Image img = icon.getImage();
+        Image resizedImg = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+        return new ImageIcon(resizedImg);
+    }
+
+    private void createFallbackIndicators() {
+        // Créer un point vert pour les mouvements possibles
+        BufferedImage dotImage = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = dotImage.createGraphics();
+        g2d.setColor(new Color(0, 255, 0, 180));
+        g2d.fillOval(5, 5, 10, 10);
+        g2d.dispose();
+        dotIcon = new ImageIcon(dotImage);
+
+        // Créer une croix rouge pour les captures
+        BufferedImage crossImage = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        g2d = crossImage.createGraphics();
+        g2d.setColor(new Color(255, 0, 0, 180));
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawLine(5, 5, 15, 15);
+        g2d.drawLine(15, 5, 5, 15);
+        g2d.dispose();
+        crossIcon = new ImageIcon(crossImage);
+
+        // Créer un cercle bleu pour les mouvements spéciaux
+        BufferedImage circleImage = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+        g2d = circleImage.createGraphics();
+        g2d.setColor(new Color(0, 0, 255, 180));
+        g2d.setStroke(new BasicStroke(2));
+        g2d.drawOval(3, 3, 14, 14);
+        g2d.dispose();
+        circleIcon = new ImageIcon(circleImage);
+    }
+
+    private void clearMoveIndicators() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                squares[i][j].setBackground((i + j) % 2 == 0 ? LIGHT_SQUARE : DARK_SQUARE);
+                if (moveIndicators[i][j] != null) {
+                    squares[i][j].remove(moveIndicators[i][j]);
+                    moveIndicators[i][j] = null;
+                }
+            }
+        }
+        // Forcer le rafraîchissement de l'affichage
+        revalidate();
+        repaint();
+    }
+
+    private void showMoveIndicators(Piece piece) {
+        if (piece == null) return;
+        
+        List<int[]> validMoves = core.getPlateau().filterValidMoves(piece);
+        Case currentCase = piece.getCurrentCase();
+
+        for (int[] move : validMoves) {
+            int x = move[0];
+            int y = move[1];
+            Case targetCase = core.getPlateau().getCase(x, y);
+            
+            // Créer l'indicateur s'il n'existe pas
+            if (moveIndicators[x][y] == null) {
+                moveIndicators[x][y] = new JLabel();
+                moveIndicators[x][y].setBounds(CASE_SIZE/4, CASE_SIZE/4, CASE_SIZE/2, CASE_SIZE/2);
+                squares[x][y].add(moveIndicators[x][y], Integer.valueOf(3)); // Layer 3 pour les indicateurs
+            }
+
+            // Choisir l'indicateur approprié
+            ImageIcon indicator;
+            if (targetCase.getPiece() != null) {
+                indicator = crossIcon;
+            } else if (isSpecialMove(piece, currentCase, targetCase)) {
+                indicator = circleIcon;
+            } else {
+                indicator = dotIcon;
+            }
+            
+            moveIndicators[x][y].setIcon(indicator);
+        }
+        
+        // Forcer le rafraîchissement de l'affichage
+        revalidate();
+        repaint();
+    }
+
+    private boolean isSpecialMove(Piece piece, Case source, Case target) {
+        // Roque
+        if (piece instanceof model.pieces.King && 
+            Math.abs(target.getY() - source.getY()) == 2) {
+            return true;
+        }
+        
+        // Promotion de pion
+        if (piece instanceof model.pieces.Pawn && 
+            ((piece.getColor() && target.getX() == 0) || 
+             (!piece.getColor() && target.getX() == 7))) {
+            return true;
+        }
+        
+        // Capture en passant
+        if (piece instanceof model.pieces.Pawn && 
+            source.getY() != target.getY() && 
+            target.getPiece() == null) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -49,27 +192,29 @@ public class UI extends JFrame implements GameUI {
             core.setAI(true, dialog.getAIDifficulty(), dialog.isAIWhite());
         }
 
-        if (minutes == -1) {
-            minutes = 0;
-        }
-
-        // Créer et configurer le timer avec un callback pour la fin du temps
-        gameTimer = new GameTimer(minutes, (isWhiteTimeout) -> {
-            String message = "Temps écoulé ! Les " + (isWhiteTimeout ? "Noirs" : "Blancs") + " gagnent !";
-            showGameEndDialog(message);
-        });
-
         if (minutes > 0) {
+            // Créer et configurer le timer avec un callback pour la fin du temps
+            gameTimer = new GameTimer(minutes, (isWhiteTimeout) -> {
+                String message = "Temps écoulé ! Les " + (isWhiteTimeout ? "Noirs" : "Blancs") + " gagnent !";
+                showGameEndDialog(message);
+            });
+
+            // Ajouter le timer au panel du haut
             JPanel topPanel = (JPanel) getContentPane().getComponent(0);
             if (topPanel.getLayout() instanceof BoxLayout) {
-                topPanel.add(gameTimer, 0);
-                topPanel.add(Box.createVerticalStrut(10), 1);
-                gameTimer.setAlignmentX(Component.CENTER_ALIGNMENT);
+                JPanel timerPanel = (JPanel) topPanel.getComponent(0);
+                timerPanel.removeAll();
+                timerPanel.add(gameTimer);
+                timerPanel.add(Box.createVerticalStrut(10));
                 gameTimer.startTimer();
+                timerPanel.revalidate();
+                timerPanel.repaint();
             }
-            topPanel.revalidate();
-            topPanel.repaint();
         }
+
+        // Forcer la mise à jour initiale de l'affichage
+        update(core, null);
+        pack();
     }
 
     @Override
@@ -89,31 +234,54 @@ public class UI extends JFrame implements GameUI {
         // Panel du haut pour les messages et le timer
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.setPreferredSize(new Dimension(BOARD_SIZE, 150));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Panel pour le timer
+        JPanel timerPanel = new JPanel();
+        timerPanel.setLayout(new BoxLayout(timerPanel, BoxLayout.Y_AXIS));
+        timerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        if (gameTimer != null) {
+            gameTimer.setAlignmentX(Component.CENTER_ALIGNMENT);
+            timerPanel.add(gameTimer);
+            timerPanel.add(Box.createVerticalStrut(10));
+        }
+        topPanel.add(timerPanel);
+
+        // Panel pour le label du tour
+        JPanel tourPanel = new JPanel();
+        tourPanel.setLayout(new BoxLayout(tourPanel, BoxLayout.Y_AXIS));
+        tourPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         labelTour.setFont(new Font("Arial", Font.BOLD, 24));
         labelTour.setAlignmentX(Component.CENTER_ALIGNMENT);
-        topPanel.add(labelTour);
+        tourPanel.add(labelTour);
+        topPanel.add(tourPanel);
         topPanel.add(Box.createVerticalStrut(10));
+
         this.add(topPanel, BorderLayout.NORTH);
 
         // Création du plateau avec une taille fixe
-        JPanel boardPanel = new JPanel() {
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(BOARD_SIZE, BOARD_SIZE);
-            }
+        JPanel boardPanel = new JPanel(new GridLayout(8, 8));
+        boardPanel.setPreferredSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
+        boardPanel.setMinimumSize(new Dimension(BOARD_SIZE, BOARD_SIZE));
 
-            @Override
-            public Dimension getMinimumSize() {
-                return getPreferredSize();
-            }
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                initializeSquare(i, j);
 
-            @Override
-            public Dimension getMaximumSize() {
-                return getPreferredSize();
+                // Ajouter le gestionnaire d'événements
+                final int row = i;
+                final int col = j;
+                squares[i][j].addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        handleCaseClick(row, col);
+                    }
+                });
+
+                boardPanel.add(squares[i][j]);
             }
-        };
-        boardPanel.setLayout(new GridLayout(8, 8));
+        }
 
         // Panel principal qui contient les coordonnées et le plateau
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
@@ -135,35 +303,6 @@ public class UI extends JFrame implements GameUI {
             leftNumbers.add(label);
         }
         mainPanel.add(leftNumbers, BorderLayout.WEST);
-
-        // Création des cases de l'échiquier
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                JLabel caseLabel = new JLabel();
-                caseLabel.setOpaque(true);
-                caseLabel.setPreferredSize(new Dimension(CASE_SIZE, CASE_SIZE));
-                caseLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                caseLabel.setVerticalAlignment(SwingConstants.CENTER);
-
-                if ((i + j) % 2 == 0) {
-                    caseLabel.setBackground(new Color(245, 245, 220)); // Beige clair
-                } else {
-                    caseLabel.setBackground(new Color(120, 59, 19)); // Marron
-                }
-
-                final int row = i;
-                final int col = j;
-                caseLabel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        handleCaseClick(row, col);
-                    }
-                });
-
-                tab[i][j] = caseLabel;
-                boardPanel.add(caseLabel);
-            }
-        }
 
         mainPanel.add(boardPanel, BorderLayout.CENTER);
 
@@ -194,25 +333,48 @@ public class UI extends JFrame implements GameUI {
         capturedPiecesPanel.setPreferredSize(new Dimension(BOARD_SIZE, 80));
         capturedPiecesPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         this.add(capturedPiecesPanel, BorderLayout.SOUTH);
+    }
 
-        // Ajouter des marges autour de tous les composants
-        ((JComponent) getContentPane()).setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    private void initializeSquare(int i, int j) {
+        squares[i][j] = new JLayeredPane();
+        squares[i][j].setPreferredSize(new Dimension(CASE_SIZE, CASE_SIZE));
+        squares[i][j].setBackground((i + j) % 2 == 0 ? LIGHT_SQUARE : DARK_SQUARE);
+        squares[i][j].setOpaque(true);
+
+        // Créer l'overlay pour l'échec
+        checkOverlays[i][j] = new JPanel();
+        checkOverlays[i][j].setBackground(CHECK_COLOR);
+        checkOverlays[i][j].setOpaque(false);
+        checkOverlays[i][j].setBounds(0, 0, CASE_SIZE, CASE_SIZE);
+        squares[i][j].add(checkOverlays[i][j], Integer.valueOf(1));
+
+        // Créer le label pour la pièce
+        pieceLabels[i][j] = new JLabel();
+        pieceLabels[i][j].setBounds(0, 0, CASE_SIZE, CASE_SIZE);
+        pieceLabels[i][j].setHorizontalAlignment(SwingConstants.CENTER);
+        squares[i][j].add(pieceLabels[i][j], Integer.valueOf(2));
+    }
+
+    private void setCheckHighlight(int x, int y, boolean isCheck) {
+        checkOverlays[x][y].setOpaque(isCheck);
+        squares[x][y].revalidate();
+        squares[x][y].repaint();
     }
 
     private void handleCaseClick(int x, int y) {
         if (gameTimer != null && gameTimer.isGameOver()) {
-            return; // Ignorer les clics si la partie est terminée par le temps
+            return;
         }
+
+        clearMoveIndicators(); // Effacer les indicateurs précédents
 
         if (selectedPiece != null) {
             System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
             Case targetCase = core.getPlateau().getCase(x, y);
             Move move = new Move(selectedPiece, targetCase);
 
-            // Vérifier si le mouvement est valide avant de changer le tour
             if (move.isMoveValid(core.getPlateau())) {
                 core.doMove(move);
-                // Changer le tour dans le timer seulement si le mouvement est valide
                 if (gameTimer != null) {
                     gameTimer.switchTurn();
                 }
@@ -220,60 +382,94 @@ public class UI extends JFrame implements GameUI {
             selectedPiece = null;
         } else {
             Piece piece = core.getPieceAt(x, y);
-            // Vérifier que la pièce appartient au joueur dont c'est le tour
             if (piece != null && piece.getColor() == core.isWhiteTurn()) {
                 System.out.println("Pièce sélectionnée à (" + x + ", " + y + ")");
                 selectedPiece = piece;
+                showMoveIndicators(piece);
             }
         }
     }
 
     @Override
     public void update(Observable o, Object arg) {
-        // Réinitialise toutes les cases
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                tab[i][j].setIcon(null);
+        SwingUtilities.invokeLater(() -> {
+            clearMoveIndicators();
+            
+            // Réinitialiser toutes les cases à leur couleur normale et masquer les overlays d'échec
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    squares[i][j].setBackground((i + j) % 2 == 0 ? LIGHT_SQUARE : DARK_SQUARE);
+                    setCheckHighlight(i, j, false);
+                    pieceLabels[i][j].setIcon(null);
+                }
             }
-        }
 
-        // Met à jour les pièces sur l'échiquier
-        for (Piece piece : core.getPlateau().getPieces()) {
-            if (piece.getImg() != null) {
-                ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
-                        .getImage()
-                        .getScaledInstance(CASE_SIZE, CASE_SIZE, Image.SCALE_SMOOTH));
-                tab[piece.getCurrentCase().getX()][piece.getCurrentCase().getY()].setIcon(icon);
+            // Trouver les rois et vérifier s'ils sont en échec
+            boolean whiteKingInCheck = core.getPlateau().isKingInCheck(true);
+            boolean blackKingInCheck = core.getPlateau().isKingInCheck(false);
+            Case whiteKingCase = null;
+            Case blackKingCase = null;
+
+            // Met à jour les pièces sur l'échiquier
+            if (core != null && core.getPlateau() != null && core.getPlateau().getPieces() != null) {
+                for (Piece piece : core.getPlateau().getPieces()) {
+                    if (piece != null && piece.getImg() != null && piece.getCurrentCase() != null) {
+                        ImageIcon icon = new ImageIcon(new ImageIcon(piece.getImg())
+                                .getImage()
+                                .getScaledInstance(CASE_SIZE, CASE_SIZE, Image.SCALE_SMOOTH));
+                        int x = piece.getCurrentCase().getX();
+                        int y = piece.getCurrentCase().getY();
+                        pieceLabels[x][y].setIcon(icon);
+                        
+                        // Sauvegarder les positions des rois
+                        if (piece instanceof model.pieces.King) {
+                            if (piece.getColor()) {
+                                whiteKingCase = piece.getCurrentCase();
+                            } else {
+                                blackKingCase = piece.getCurrentCase();
+                            }
+                        }
+                    }
+                }
             }
-        }
 
-        // Mettre à jour le tour de jeu et vérifier les conditions de fin
-        boolean whiteKingInCheck = core.getPlateau().isKingInCheck(true);
-        boolean blackKingInCheck = core.getPlateau().isKingInCheck(false);
-        String message = "";
+            // Appliquer la coloration d'échec aux rois
+            if (whiteKingInCheck && whiteKingCase != null) {
+                setCheckHighlight(whiteKingCase.getX(), whiteKingCase.getY(), true);
+            }
+            if (blackKingInCheck && blackKingCase != null) {
+                setCheckHighlight(blackKingCase.getX(), blackKingCase.getY(), true);
+            }
 
-        if (whiteKingInCheck && core.getPlateau().isCheckMate(true)) {
-            message = "Échec et mat ! Noir gagne !";
-            showGameEndDialog(message);
-        } else if (blackKingInCheck && core.getPlateau().isCheckMate(false)) {
-            message = "Échec et mat ! Blanc gagne !";
-            showGameEndDialog(message);
-        } else if (core.getPlateau().isStalemate(true) || core.getPlateau().isStalemate(false)) {
-            message = "Pat ! La partie est nulle !";
-            showGameEndDialog(message);
-        } else if (core.getPlateau().isInsufficientMaterial()) {
-            message = "Match nul par matériel insuffisant !";
-            showGameEndDialog(message);
-        } else if (whiteKingInCheck || blackKingInCheck) {
-            message = "Échec au roi " + (whiteKingInCheck ? "blanc" : "noir") + " !";
-            labelTour.setText("<html>Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs") +
-                "<br><font color='red'>" + message + "</font></html>");
-            return;
-        }
+            // Mettre à jour le tour de jeu et vérifier les conditions de fin
+            String message = "";
 
-        if (message.isEmpty()) {
-            labelTour.setText("Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs"));
-        }
+            if (whiteKingInCheck && core.getPlateau().isCheckMate(true)) {
+                message = "Échec et mat ! Noir gagne !";
+                showGameEndDialog(message);
+            } else if (blackKingInCheck && core.getPlateau().isCheckMate(false)) {
+                message = "Échec et mat ! Blanc gagne !";
+                showGameEndDialog(message);
+            } else if (core.getPlateau().isStalemate(true) || core.getPlateau().isStalemate(false)) {
+                message = "Pat ! La partie est nulle !";
+                showGameEndDialog(message);
+            } else if (core.getPlateau().isInsufficientMaterial()) {
+                message = "Match nul par matériel insuffisant !";
+                showGameEndDialog(message);
+            } else if (whiteKingInCheck || blackKingInCheck) {
+                message = "Échec au roi " + (whiteKingInCheck ? "blanc" : "noir") + " !";
+                labelTour.setText("<html><div style='text-align: center;'>Tour : " + 
+                    (core.isWhiteTurn() ? "Blancs" : "Noirs") +
+                    "<br><font color='red'>" + message + "</font></div></html>");
+            } else {
+                labelTour.setText("Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs"));
+            }
+
+            // Réafficher les indicateurs si une pièce est sélectionnée
+            if (selectedPiece != null) {
+                showMoveIndicators(selectedPiece);
+            }
+        });
     }
 
     private void showGameEndDialog(String message) {
@@ -300,10 +496,22 @@ public class UI extends JFrame implements GameUI {
             core.initGame();
             UI newUI = new UI(core);
             newUI.initialize();
+            // Forcer la mise à jour de l'affichage initial
+            newUI.update(core, null);
+            newUI.pack();
+            newUI.setLocationRelativeTo(null);
         } else {
             dispose();
             System.exit(0);
         }
+    }
+
+    @Override
+    public void displayBoard() {
+        // Forcer la mise à jour de l'affichage
+        update(core, null);
+        revalidate();
+        repaint();
     }
 
     /*public static void main(String[] args) {

@@ -6,4 +6,5 @@ public interface GameUI extends Observer {
     void initialize();
     void display();
     void close();
+    void displayBoard();
 } 

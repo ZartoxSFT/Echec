@@ -24,9 +24,26 @@ public class ConsoleUI implements GameUI {
     private static final String ANSI_WHITE_PIECE = "\u001B[97m"; // Blanc brillant
     private static final String ANSI_BLACK_PIECE = "\u001B[30m"; // Noir
 
+    // Mode d'affichage des pièces
+    private boolean useUnicode = false;
+
+    // Représentation des pièces en mode Unicode avec alignement
+    private static final String[] UNICODE_PIECES = {
+        "♔", "♕", "♖", "♗", "♘", "♙",  // Pièces blanches
+        "♚", "♛", "♜", "♝", "♞", "♟"   // Pièces noires
+    };
+
+    // Représentation des pièces en mode lettre
+    private static final String[] LETTER_PIECES = {
+        "R", "D", "T", "F", "C", "P",  // Pièces blanches
+        "R", "D", "T", "F", "C", "P"   // Pièces noires
+    };
+
     public ConsoleUI(Core core) {
         this.core = core;
         this.scanner = new Scanner(System.in);
+        this.core.addObserver(this);
+        askDisplayMode();
     }
 
     @Override
@@ -151,7 +168,58 @@ public class ConsoleUI implements GameUI {
         // Cette méthode n'est plus nécessaire car nous gérons l'affichage directement
     }
 
-    private void displayBoard() {
+    private void askDisplayMode() {
+        System.out.println("Choisissez le mode d'affichage :");
+        System.out.println("1. Lettres (P, T, C, F, D, R)");
+        System.out.println("2. Symboles Unicode (♟, ♜, ♞, ♝, ♛, ♚)");
+        System.out.print("Votre choix (1 ou 2) : ");
+
+        try {
+            String input = scanner.nextLine().trim();
+            int choice = Integer.parseInt(input);
+            if (choice == 2) {
+                useUnicode = true;
+                System.out.println("Mode Unicode activé.");
+            } else {
+                useUnicode = false;
+                System.out.println("Mode lettres activé.");
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Entrée invalide, utilisation du mode lettres par défaut.");
+            useUnicode = false;
+        }
+    }
+
+    private String getPieceSymbol(Piece piece) {
+        if (piece == null) {
+            // Case vide avec la même largeur qu'une pièce avec symbole
+            return useUnicode ? "   " : " . ";
+        }
+
+        int index = getPieceIndex(piece);
+        String symbol;
+        
+        if (useUnicode) {
+            symbol = UNICODE_PIECES[index + (piece.getColor() ? 0 : 6)];
+            return " " + symbol + " ";  // Ajouter des espaces avant et après pour avoir la même largeur
+        } else {
+            symbol = LETTER_PIECES[index];
+            return " " + (piece.getColor() ? ANSI_WHITE_PIECE : ANSI_BLACK_PIECE) + symbol + ANSI_RESET + " ";
+        }
+    }
+
+    private int getPieceIndex(Piece piece) {
+        if (piece instanceof model.pieces.King) return 0;
+        if (piece instanceof model.pieces.Queen) return 1;
+        if (piece instanceof model.pieces.Rook) return 2;
+        if (piece instanceof model.pieces.Bishop) return 3;
+        if (piece instanceof model.pieces.Knight) return 4;
+        if (piece instanceof model.pieces.Pawn) return 5;
+        return 0;
+    }
+
+    @Override
+    public void displayBoard() {
         clearScreen();
         boolean whiteKingInCheck = core.getPlateau().isKingInCheck(true);
         boolean blackKingInCheck = core.getPlateau().isKingInCheck(false);
@@ -161,32 +229,28 @@ public class ConsoleUI implements GameUI {
                 (whiteKingInCheck ? "blanc" : "noir") + " est en échec !" + ANSI_RESET);
         }
 
-        System.out.println("\n   a  b  c  d  e  f  g  h");
-        System.out.println("  -------------------------");
+        // En-tête avec espacement adapté au mode
+        System.out.println("\n     a   b   c   d   e   f   g   h");
+        System.out.println("   +-----------------------------------+");
 
         for (int i = 0; i < 8; i++) {
-            System.out.print((8 - i) + " |");
+            // Ajouter un espace pour les numéros à un chiffre (1-9)
+            String lineNumber = String.valueOf(8 - i);
+            if (lineNumber.length() == 1) {
+                lineNumber = " " + lineNumber;
+            }
+            System.out.print(" " + lineNumber + " |");
+            
             for (int j = 0; j < 8; j++) {
                 Piece piece = core.getPieceAt(i, j);
-                if (piece == null) {
-                    System.out.print(" · ");
-                } else {
-                    boolean isKingInCheck = (piece instanceof model.pieces.King) &&
-                        ((piece.getColor() && whiteKingInCheck) || (!piece.getColor() && blackKingInCheck));
-
-                    if (isKingInCheck) {
-                        System.out.print(ANSI_RED_BACKGROUND);
-                    }
-
-                    String pieceColor = piece.getColor() ? ANSI_WHITE_PIECE : ANSI_BLACK_PIECE;
-                    System.out.print(" " + pieceColor + getPieceUnicode(piece) + ANSI_RESET + " ");
-                }
+                System.out.print(getPieceSymbol(piece));
             }
-            System.out.println("| " + (8 - i));
+            
+            System.out.println("| " + lineNumber);
+            System.out.println("   +-----------------------------------+");
         }
 
-        System.out.println("  -------------------------");
-        System.out.println("   a  b  c  d  e  f  g  h");
+        System.out.println("     a   b   c   d   e   f   g   h");
 
         String currentPlayer = core.isWhiteTurn() ? "Blancs" : "Noirs";
         System.out.println("\nTour : " + ANSI_YELLOW + currentPlayer + ANSI_RESET);
@@ -195,22 +259,6 @@ public class ConsoleUI implements GameUI {
     private void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
-    }
-
-    private String getPieceUnicode(Piece piece) {
-        String className = piece.getClass().getSimpleName();
-        boolean isWhite = piece.getColor();
-
-        // Utiliser des caractères ASCII pour une meilleure compatibilité console
-        return switch (className) {
-            case "Pawn" -> isWhite ? "P" : "p";
-            case "Knight" -> isWhite ? "N" : "n";
-            case "Bishop" -> isWhite ? "B" : "b";
-            case "Rook" -> isWhite ? "R" : "r";
-            case "Queen" -> isWhite ? "Q" : "q";
-            case "King" -> isWhite ? "K" : "k";
-            default -> "?";
-        };
     }
 
     private void processCommand(String command) {

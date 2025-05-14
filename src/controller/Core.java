@@ -42,20 +42,16 @@ public class Core extends Observable implements Runnable {
     }
 
     public void movePiece(Piece piece, Case newCase) {
-        if (piece == null) return;
+        if (piece == null || newCase == null) return;
 
+        // Vérifier si c'est le bon tour
         if (piece.getColor() != plateau.isCurrentPlayerWhite()) {
             System.out.println("Ce n'est pas à ton tour !");
             return;
         }
 
         Case oldCase = piece.getCurrentCase();
-
-        if (newCase == null) {
-            System.out.println("Mouvement invalide : case inexistante.");
-            return;
-        }
-
+        
         // Vérifier si le mouvement est valide
         boolean isValidMove = false;
         List<int[]> validMoves = plateau.filterValidMoves(piece);
@@ -73,111 +69,118 @@ public class Core extends Observable implements Runnable {
 
         // Gestion du roque
         if (piece instanceof model.pieces.King && Math.abs(newCase.getY() - oldCase.getY()) == 2) {
-            boolean isKingSide = newCase.getY() > oldCase.getY();
-            int rookOldY = isKingSide ? 7 : 0;
-            int rookNewY = isKingSide ? 5 : 3;
-
-            Case rookOldCase = plateau.getCase(oldCase.getX(), rookOldY);
-            Case rookNewCase = plateau.getCase(oldCase.getX(), rookNewY);
-
-            Piece rook = rookOldCase.getPiece();
-            if (rook != null && rook instanceof model.pieces.Rook) {
-                rookOldCase.setPiece(null);
-                rookNewCase.setPiece(rook);
-                rook.setCurrentCase(rookNewCase);
-                plateau.getHasMoved().put(rook, true);
-            }
+            handleCastling(piece, oldCase, newCase);
         }
 
         // Gestion de la capture en passant
         if (piece instanceof model.pieces.Pawn) {
-            if (newCase.getPiece() == null && Math.abs(newCase.getY() - oldCase.getY()) == 1 &&
-                Math.abs(newCase.getX() - oldCase.getX()) == 1) {
-                Piece enPassantTarget = plateau.getEnPassantTarget();
-                if (enPassantTarget != null) {
-                    Case capturedPawnCase = plateau.getCase(newCase.getX() + (piece.getColor() ? 1 : -1), newCase.getY());
-                    if (capturedPawnCase != null && capturedPawnCase.getPiece() == enPassantTarget) {
-                        // Retirer le pion capturé
-                        capturedPawnCase.setPiece(null);
-                        plateau.getPieces().remove(enPassantTarget);
-                        System.out.println("Capture en passant !");
-                    }
-                }
-            }
-
-            // Mettre à jour la cible en passant après le déplacement
-            if (Math.abs(newCase.getX() - oldCase.getX()) == 2) {
-                plateau.updateEnPassantTarget(piece, oldCase.getX(), newCase.getX());
-            } else {
-                plateau.updateEnPassantTarget(null, 0, 0); // Réinitialiser si ce n'est pas un mouvement de deux cases
-            }
+            handleEnPassant(piece, oldCase, newCase);
         }
 
+        // Effectuer le mouvement
         Piece capturedPiece = newCase.getPiece();
         oldCase.setPiece(null);
         newCase.setPiece(piece);
         piece.setCurrentCase(newCase);
 
+        // Vérifier si le roi est toujours en échec après le mouvement
         if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {
-            System.out.println("Mouvement invalide : le roi reste en échec !");
+            // Annuler le mouvement
             newCase.setPiece(capturedPiece);
             oldCase.setPiece(piece);
             piece.setCurrentCase(oldCase);
+            System.out.println("Mouvement invalide : le roi reste en échec !");
             return;
         }
 
+        // Gérer la capture
         if (capturedPiece != null) {
-            System.out.println("Capture de " + capturedPiece.getClass().getSimpleName() + " en (" + newCase.getX() + "," + newCase.getY() + ")");
             plateau.getPieces().remove(capturedPiece);
         }
 
+        // Mettre à jour l'état du jeu
         plateau.getHasMoved().put(piece, true);
 
-        // Gestion de la promotion
+        // Gestion de la promotion des pions
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newCase.getX() == 0) || (!piece.getColor() && newCase.getX() == 7)) {
                 plateau.promotePawn(piece, plateau.getPieces());
             }
         }
 
-        // Gestion échec/mat et pat
+        // Vérifier les conditions de fin de partie
+        checkGameEndConditions();
+
+        // Changer de tour
+        plateau.setCurrentPlayerWhite(!plateau.isCurrentPlayerWhite());
+        setChanged();
+        notifyObservers();
+
+        // Faire jouer l'IA si c'est son tour
+        if (isAIGame && ai != null && plateau.isCurrentPlayerWhite() == ai.isWhite() && running) {
+            playAIMove();
+        }
+    }
+
+    private void handleCastling(Piece king, Case oldCase, Case newCase) {
+        boolean isKingSide = newCase.getY() > oldCase.getY();
+        int rookOldY = isKingSide ? 7 : 0;
+        int rookNewY = isKingSide ? 5 : 3;
+
+        Case rookOldCase = plateau.getCase(oldCase.getX(), rookOldY);
+        Case rookNewCase = plateau.getCase(oldCase.getX(), rookNewY);
+
+        Piece rook = rookOldCase.getPiece();
+        if (rook != null && rook instanceof model.pieces.Rook) {
+            rookOldCase.setPiece(null);
+            rookNewCase.setPiece(rook);
+            rook.setCurrentCase(rookNewCase);
+            plateau.getHasMoved().put(rook, true);
+        }
+    }
+
+    private void handleEnPassant(Piece pawn, Case oldCase, Case newCase) {
+        // Capture en passant
+        if (newCase.getPiece() == null && Math.abs(newCase.getY() - oldCase.getY()) == 1) {
+            Piece enPassantTarget = plateau.getEnPassantTarget();
+            if (enPassantTarget != null) {
+                Case capturedPawnCase = plateau.getCase(oldCase.getX(), newCase.getY());
+                if (capturedPawnCase != null && capturedPawnCase.getPiece() == enPassantTarget) {
+                    capturedPawnCase.setPiece(null);
+                    plateau.getPieces().remove(enPassantTarget);
+                }
+            }
+        }
+
+        // Mise à jour de la cible en passant
+        if (Math.abs(newCase.getX() - oldCase.getX()) == 2) {
+            plateau.updateEnPassantTarget(pawn, oldCase.getX(), newCase.getX());
+        } else {
+            plateau.updateEnPassantTarget(null, 0, 0);
+        }
+    }
+
+    private void checkGameEndConditions() {
         boolean isOpponentWhite = !plateau.isCurrentPlayerWhite();
         if (plateau.isKingInCheck(isOpponentWhite)) {
             if (plateau.isCheckMate(isOpponentWhite)) {
                 System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");
                 running = false;
             } else {
-                System.out.println("Échec contre " + (!plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " !");
+                System.out.println("Échec au roi " + (!plateau.isCurrentPlayerWhite() ? "blanc" : "noir") + " !");
             }
-        } else {
-            // Vérifier le pat
-            if (plateau.isStalemate(isOpponentWhite)) {
-                System.out.println("Pat ! La partie est nulle !");
-                running = false;
-            }
-            // Vérifier le matériel insuffisant
-            else if (plateau.isInsufficientMaterial()) {
-                System.out.println("Match nul par matériel insuffisant !");
-                running = false;
-            }
-        }
-
-        plateau.setCurrentPlayerWhite(!plateau.isCurrentPlayerWhite());
-        setChanged();
-        notifyObservers();
-
-        // Si c'est au tour de l'IA, faire jouer l'IA
-        if (isAIGame && ai != null && plateau.isCurrentPlayerWhite() == ai.isWhite() && running) {
-            playAIMove();
+        } else if (plateau.isStalemate(isOpponentWhite)) {
+            System.out.println("Pat ! La partie est nulle !");
+            running = false;
+        } else if (plateau.isInsufficientMaterial()) {
+            System.out.println("Match nul par matériel insuffisant !");
+            running = false;
         }
     }
 
     public Piece getPieceAt(int x, int y) {
-        Case targetCase = plateau.getCase(x, y); // Obtenir la case correspondante
-        if (targetCase != null) {
-            return targetCase.getPiece(); // Retourner la pièce associée à la case
-        }
-        return null;
+        Case targetCase = plateau.getCase(x, y);
+        return targetCase != null ? targetCase.getPiece() : null;
     }
 
     public synchronized void doMove(Move move) {
@@ -201,20 +204,8 @@ public class Core extends Observable implements Runnable {
                     }
                 }
 
-                Piece piece = moveBuffer.getPiece();
-                int x = moveBuffer.getX();
-                int y = moveBuffer.getY();
-                Case targetCase = plateau.getCase(x, y);
-
-                System.out.println("Tentative de mouvement : " + piece.getClass().getSimpleName() + " vers (" + x + "," + y + ")");
-                System.out.println("Mouvements possibles : ");
-                List<int[]> validMoves = plateau.filterValidMoves(piece);
-                for (int[] move : validMoves) {
-                    System.out.println(" -> (" + move[0] + "," + move[1] + ")");
-                }
-
                 if (moveBuffer.isMoveValid(plateau)) {
-                    movePiece(piece, targetCase);
+                    movePiece(moveBuffer.getPiece(), moveBuffer.getDestination());
                 }
 
                 moveBuffer = null;
@@ -230,7 +221,6 @@ public class Core extends Observable implements Runnable {
         return plateau;
     }
 
-    // Nouvelle méthode pour forcer une mise à jour de l'UI
     public void forceUpdate() {
         setChanged();
         notifyObservers();
@@ -245,24 +235,14 @@ public class Core extends Observable implements Runnable {
         }
     }
 
-    public boolean isValidMove(Move move) {
-        return move.isMoveValid(plateau);
-    }
-
     public List<Move> getPossibleMoves(Piece piece) {
         List<Move> moves = new ArrayList<>();
-        List<int[]> validMoves = piece.getValidMoves(plateau);
-
+        List<int[]> validMoves = plateau.filterValidMoves(piece);
+        
         for (int[] coords : validMoves) {
-            moves.add(new Move(piece, new Case(coords[0], coords[1])));
+            moves.add(new Move(piece, plateau.getCase(coords[0], coords[1])));
         }
-
+        
         return moves;
-    }
-
-    public void movePiece(Move move) {
-        Piece piece = move.getPiece();
-        Case destination = move.getDestination();
-        movePiece(piece, destination);
     }
 }
