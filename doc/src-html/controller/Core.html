@@ -23,394 +23,413 @@
 <span class="source-line-no">010</span><span id="line-10">import java.io.ObjectOutputStream;</span>
 <span class="source-line-no">011</span><span id="line-11">import java.io.FileInputStream;</span>
 <span class="source-line-no">012</span><span id="line-12">import java.io.ObjectInputStream;</span>
-<span class="source-line-no">013</span><span id="line-13"></span>
-<span class="source-line-no">014</span><span id="line-14">import model.Move;</span>
-<span class="source-line-no">015</span><span id="line-15">import model.Piece;</span>
-<span class="source-line-no">016</span><span id="line-16">import model.Plateau;</span>
-<span class="source-line-no">017</span><span id="line-17">import model.pieces.King;</span>
-<span class="source-line-no">018</span><span id="line-18">import model.Case;</span>
-<span class="source-line-no">019</span><span id="line-19">import model.GameState;</span>
-<span class="source-line-no">020</span><span id="line-20"></span>
-<span class="source-line-no">021</span><span id="line-21">/**</span>
-<span class="source-line-no">022</span><span id="line-22"> * Classe principale du jeu d'échecs.</span>
-<span class="source-line-no">023</span><span id="line-23"> * Gère le plateau, l'IA, les mouvements, etc.</span>
-<span class="source-line-no">024</span><span id="line-24"> * Implémente l'Observable pour notifier les observateurs lorsque le plateau est mis à jour.</span>
-<span class="source-line-no">025</span><span id="line-25"> */</span>
-<span class="source-line-no">026</span><span id="line-26">public class Core extends Observable implements Runnable {</span>
-<span class="source-line-no">027</span><span id="line-27">    private Move moveBuffer = null;</span>
-<span class="source-line-no">028</span><span id="line-28">    private boolean running = true;</span>
-<span class="source-line-no">029</span><span id="line-29">    private Plateau plateau;</span>
-<span class="source-line-no">030</span><span id="line-30">    private AI ai = null;</span>
-<span class="source-line-no">031</span><span id="line-31">    private boolean isAIGame = false;</span>
-<span class="source-line-no">032</span><span id="line-32">    private boolean currentPlayer; // true for white, false for black</span>
-<span class="source-line-no">033</span><span id="line-33"></span>
-<span class="source-line-no">034</span><span id="line-34">    /**</span>
-<span class="source-line-no">035</span><span id="line-35">     * Constructeur de la classe Core.</span>
-<span class="source-line-no">036</span><span id="line-36">     * Initialise le plateau et le joueur actif.</span>
-<span class="source-line-no">037</span><span id="line-37">     */</span>
-<span class="source-line-no">038</span><span id="line-38">    public Core() {</span>
-<span class="source-line-no">039</span><span id="line-39">        this.plateau = new Plateau();</span>
-<span class="source-line-no">040</span><span id="line-40">        plateau.initPieces();</span>
-<span class="source-line-no">041</span><span id="line-41">        currentPlayer = true; // Le blanc commence</span>
-<span class="source-line-no">042</span><span id="line-42">    }</span>
-<span class="source-line-no">043</span><span id="line-43"></span>
-<span class="source-line-no">044</span><span id="line-44">    /**</span>
-<span class="source-line-no">045</span><span id="line-45">     * </span>
-<span class="source-line-no">046</span><span id="line-46">     * @param enabled</span>
-<span class="source-line-no">047</span><span id="line-47">     * @param difficulty</span>
-<span class="source-line-no">048</span><span id="line-48">     * @param aiIsWhite</span>
-<span class="source-line-no">049</span><span id="line-49">     */</span>
-<span class="source-line-no">050</span><span id="line-50">    public void setAI(boolean enabled, int difficulty, boolean aiIsWhite) {</span>
-<span class="source-line-no">051</span><span id="line-51">        if (enabled) {</span>
-<span class="source-line-no">052</span><span id="line-52">            this.ai = new AI(difficulty, aiIsWhite);</span>
-<span class="source-line-no">053</span><span id="line-53">            this.isAIGame = true;</span>
-<span class="source-line-no">054</span><span id="line-54">        } else {</span>
-<span class="source-line-no">055</span><span id="line-55">            this.ai = null;</span>
-<span class="source-line-no">056</span><span id="line-56">            this.isAIGame = false;</span>
-<span class="source-line-no">057</span><span id="line-57">        }</span>
-<span class="source-line-no">058</span><span id="line-58">    }</span>
-<span class="source-line-no">059</span><span id="line-59"></span>
-<span class="source-line-no">060</span><span id="line-60">    /**</span>
-<span class="source-line-no">061</span><span id="line-61">     * Initialise le jeu.</span>
-<span class="source-line-no">062</span><span id="line-62">     */</span>
-<span class="source-line-no">063</span><span id="line-63">    public void initGame() {</span>
-<span class="source-line-no">064</span><span id="line-64">        Thread gameThread = new Thread(this);</span>
-<span class="source-line-no">065</span><span id="line-65">        gameThread.start();</span>
-<span class="source-line-no">066</span><span id="line-66">    }</span>
-<span class="source-line-no">067</span><span id="line-67"></span>
-<span class="source-line-no">068</span><span id="line-68">    /**</span>
-<span class="source-line-no">069</span><span id="line-69">     * Effectue un mouvement de pièce.</span>
-<span class="source-line-no">070</span><span id="line-70">     * @param piece La pièce à déplacer.</span>
-<span class="source-line-no">071</span><span id="line-71">     * @param newCase La case de destination.</span>
-<span class="source-line-no">072</span><span id="line-72">     */</span>
-<span class="source-line-no">073</span><span id="line-73">    public void movePiece(Piece piece, Case newCase) {</span>
-<span class="source-line-no">074</span><span id="line-74">        if (piece == null || newCase == null) return;</span>
-<span class="source-line-no">075</span><span id="line-75"></span>
-<span class="source-line-no">076</span><span id="line-76">        // Vérifier si c'est le bon tour</span>
-<span class="source-line-no">077</span><span id="line-77">        if (piece.getColor() != plateau.isCurrentPlayerWhite()) {</span>
-<span class="source-line-no">078</span><span id="line-78">            System.out.println("Ce n'est pas à ton tour !");</span>
-<span class="source-line-no">079</span><span id="line-79">            return;</span>
-<span class="source-line-no">080</span><span id="line-80">        }</span>
-<span class="source-line-no">081</span><span id="line-81"></span>
-<span class="source-line-no">082</span><span id="line-82">        Case oldCase = piece.getCurrentCase();</span>
-<span class="source-line-no">083</span><span id="line-83">        </span>
-<span class="source-line-no">084</span><span id="line-84">        // Vérifier si le mouvement est valide</span>
-<span class="source-line-no">085</span><span id="line-85">        boolean isValidMove = false;</span>
-<span class="source-line-no">086</span><span id="line-86">        List&lt;int[]&gt; validMoves = plateau.filterValidMoves(piece);</span>
-<span class="source-line-no">087</span><span id="line-87">        for (int[] move : validMoves) {</span>
-<span class="source-line-no">088</span><span id="line-88">            if (move[0] == newCase.getX() &amp;&amp; move[1] == newCase.getY()) {</span>
-<span class="source-line-no">089</span><span id="line-89">                isValidMove = true;</span>
-<span class="source-line-no">090</span><span id="line-90">                break;</span>
-<span class="source-line-no">091</span><span id="line-91">            }</span>
-<span class="source-line-no">092</span><span id="line-92">        }</span>
-<span class="source-line-no">093</span><span id="line-93"></span>
-<span class="source-line-no">094</span><span id="line-94">        if (!isValidMove) {</span>
-<span class="source-line-no">095</span><span id="line-95">            System.out.println("Mouvement invalide !");</span>
-<span class="source-line-no">096</span><span id="line-96">            return;</span>
-<span class="source-line-no">097</span><span id="line-97">        }</span>
-<span class="source-line-no">098</span><span id="line-98"></span>
-<span class="source-line-no">099</span><span id="line-99">        // Gestion du roque</span>
-<span class="source-line-no">100</span><span id="line-100">        if (piece instanceof model.pieces.King &amp;&amp; Math.abs(newCase.getY() - oldCase.getY()) == 2) {</span>
-<span class="source-line-no">101</span><span id="line-101">            handleCastling(piece, oldCase, newCase);</span>
-<span class="source-line-no">102</span><span id="line-102">        }</span>
-<span class="source-line-no">103</span><span id="line-103"></span>
-<span class="source-line-no">104</span><span id="line-104">        // Gestion de la capture en passant</span>
-<span class="source-line-no">105</span><span id="line-105">        if (piece instanceof model.pieces.Pawn) {</span>
-<span class="source-line-no">106</span><span id="line-106">            handleEnPassant(piece, oldCase, newCase);</span>
-<span class="source-line-no">107</span><span id="line-107">        }</span>
-<span class="source-line-no">108</span><span id="line-108"></span>
-<span class="source-line-no">109</span><span id="line-109">        // Effectuer le mouvement</span>
-<span class="source-line-no">110</span><span id="line-110">        Piece capturedPiece = newCase.getPiece();</span>
-<span class="source-line-no">111</span><span id="line-111">        oldCase.setPiece(null);</span>
-<span class="source-line-no">112</span><span id="line-112">        newCase.setPiece(piece);</span>
-<span class="source-line-no">113</span><span id="line-113">        piece.setCurrentCase(newCase);</span>
-<span class="source-line-no">114</span><span id="line-114"></span>
-<span class="source-line-no">115</span><span id="line-115">        // Vérifier si le roi est toujours en échec après le mouvement</span>
-<span class="source-line-no">116</span><span id="line-116">        if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {</span>
-<span class="source-line-no">117</span><span id="line-117">            // Annuler le mouvement</span>
-<span class="source-line-no">118</span><span id="line-118">            newCase.setPiece(capturedPiece);</span>
-<span class="source-line-no">119</span><span id="line-119">            oldCase.setPiece(piece);</span>
-<span class="source-line-no">120</span><span id="line-120">            piece.setCurrentCase(oldCase);</span>
-<span class="source-line-no">121</span><span id="line-121">            System.out.println("Mouvement invalide : le roi reste en échec !");</span>
-<span class="source-line-no">122</span><span id="line-122">            return;</span>
-<span class="source-line-no">123</span><span id="line-123">        }</span>
-<span class="source-line-no">124</span><span id="line-124"></span>
-<span class="source-line-no">125</span><span id="line-125">        // Gérer la capture</span>
-<span class="source-line-no">126</span><span id="line-126">        if (capturedPiece != null) {</span>
-<span class="source-line-no">127</span><span id="line-127">            plateau.getPieces().remove(capturedPiece);</span>
-<span class="source-line-no">128</span><span id="line-128">        }</span>
-<span class="source-line-no">129</span><span id="line-129"></span>
-<span class="source-line-no">130</span><span id="line-130">        // Mettre à jour l'état du jeu</span>
-<span class="source-line-no">131</span><span id="line-131">        plateau.getHasMoved().put(piece, true);</span>
-<span class="source-line-no">132</span><span id="line-132"></span>
-<span class="source-line-no">133</span><span id="line-133">        // Gestion de la promotion des pions</span>
-<span class="source-line-no">134</span><span id="line-134">        if (piece instanceof model.pieces.Pawn) {</span>
-<span class="source-line-no">135</span><span id="line-135">            if ((piece.getColor() &amp;&amp; newCase.getX() == 0) || (!piece.getColor() &amp;&amp; newCase.getX() == 7)) {</span>
-<span class="source-line-no">136</span><span id="line-136">                plateau.promotePawn(piece, plateau.getPieces());</span>
-<span class="source-line-no">137</span><span id="line-137">            }</span>
-<span class="source-line-no">138</span><span id="line-138">        }</span>
-<span class="source-line-no">139</span><span id="line-139"></span>
-<span class="source-line-no">140</span><span id="line-140">        // Vérifier les conditions de fin de partie</span>
-<span class="source-line-no">141</span><span id="line-141">        checkGameEndConditions();</span>
-<span class="source-line-no">142</span><span id="line-142"></span>
-<span class="source-line-no">143</span><span id="line-143">        // Changer de tour</span>
-<span class="source-line-no">144</span><span id="line-144">        plateau.setCurrentPlayerWhite(!plateau.isCurrentPlayerWhite());</span>
-<span class="source-line-no">145</span><span id="line-145">        setChanged();</span>
-<span class="source-line-no">146</span><span id="line-146">        notifyObservers();</span>
-<span class="source-line-no">147</span><span id="line-147"></span>
-<span class="source-line-no">148</span><span id="line-148">        // Faire jouer l'IA si c'est son tour</span>
-<span class="source-line-no">149</span><span id="line-149">        if (isAIGame &amp;&amp; ai != null &amp;&amp; plateau.isCurrentPlayerWhite() == ai.isWhite() &amp;&amp; running) {</span>
-<span class="source-line-no">150</span><span id="line-150">            playAIMove();</span>
-<span class="source-line-no">151</span><span id="line-151">        }</span>
-<span class="source-line-no">152</span><span id="line-152">    }</span>
-<span class="source-line-no">153</span><span id="line-153"></span>
-<span class="source-line-no">154</span><span id="line-154">    /**</span>
-<span class="source-line-no">155</span><span id="line-155">     * Gestion du roque.</span>
-<span class="source-line-no">156</span><span id="line-156">     * @param king Le roi à déplacer.</span>
-<span class="source-line-no">157</span><span id="line-157">     * @param oldCase La case initiale du roi.</span>
-<span class="source-line-no">158</span><span id="line-158">     * @param newCase La case de destination du roi.</span>
-<span class="source-line-no">159</span><span id="line-159">     */</span>
-<span class="source-line-no">160</span><span id="line-160">    private void handleCastling(Piece king, Case oldCase, Case newCase) {</span>
-<span class="source-line-no">161</span><span id="line-161">        boolean isKingSide = newCase.getY() &gt; oldCase.getY();</span>
-<span class="source-line-no">162</span><span id="line-162">        int rookOldY = isKingSide ? 7 : 0;</span>
-<span class="source-line-no">163</span><span id="line-163">        int rookNewY = isKingSide ? 5 : 3;</span>
-<span class="source-line-no">164</span><span id="line-164"></span>
-<span class="source-line-no">165</span><span id="line-165">        Case rookOldCase = plateau.getCase(oldCase.getX(), rookOldY);</span>
-<span class="source-line-no">166</span><span id="line-166">        Case rookNewCase = plateau.getCase(oldCase.getX(), rookNewY);</span>
-<span class="source-line-no">167</span><span id="line-167"></span>
-<span class="source-line-no">168</span><span id="line-168">        Piece rook = rookOldCase.getPiece();</span>
-<span class="source-line-no">169</span><span id="line-169">        if (rook != null &amp;&amp; rook instanceof model.pieces.Rook) {</span>
-<span class="source-line-no">170</span><span id="line-170">            rookOldCase.setPiece(null);</span>
-<span class="source-line-no">171</span><span id="line-171">            rookNewCase.setPiece(rook);</span>
-<span class="source-line-no">172</span><span id="line-172">            rook.setCurrentCase(rookNewCase);</span>
-<span class="source-line-no">173</span><span id="line-173">            plateau.getHasMoved().put(rook, true);</span>
-<span class="source-line-no">174</span><span id="line-174">        }</span>
-<span class="source-line-no">175</span><span id="line-175">    }</span>
-<span class="source-line-no">176</span><span id="line-176"></span>
-<span class="source-line-no">177</span><span id="line-177">    /**</span>
-<span class="source-line-no">178</span><span id="line-178">     * Gestion de la capture en passant.</span>
-<span class="source-line-no">179</span><span id="line-179">     * @param pawn Le pion à déplacer.</span>
-<span class="source-line-no">180</span><span id="line-180">     * @param oldCase La case initiale du pion.</span>
-<span class="source-line-no">181</span><span id="line-181">     * @param newCase La case de destination du pion.</span>
-<span class="source-line-no">182</span><span id="line-182">     */</span>
-<span class="source-line-no">183</span><span id="line-183">    private void handleEnPassant(Piece pawn, Case oldCase, Case newCase) {</span>
-<span class="source-line-no">184</span><span id="line-184">        // Capture en passant</span>
-<span class="source-line-no">185</span><span id="line-185">        if (newCase.getPiece() == null &amp;&amp; Math.abs(newCase.getY() - oldCase.getY()) == 1) {</span>
-<span class="source-line-no">186</span><span id="line-186">            Piece enPassantTarget = plateau.getEnPassantTarget();</span>
-<span class="source-line-no">187</span><span id="line-187">            if (enPassantTarget != null) {</span>
-<span class="source-line-no">188</span><span id="line-188">                Case capturedPawnCase = plateau.getCase(oldCase.getX(), newCase.getY());</span>
-<span class="source-line-no">189</span><span id="line-189">                if (capturedPawnCase != null &amp;&amp; capturedPawnCase.getPiece() == enPassantTarget) {</span>
-<span class="source-line-no">190</span><span id="line-190">                    capturedPawnCase.setPiece(null);</span>
-<span class="source-line-no">191</span><span id="line-191">                    plateau.getPieces().remove(enPassantTarget);</span>
-<span class="source-line-no">192</span><span id="line-192">                }</span>
-<span class="source-line-no">193</span><span id="line-193">            }</span>
-<span class="source-line-no">194</span><span id="line-194">        }</span>
-<span class="source-line-no">195</span><span id="line-195"></span>
-<span class="source-line-no">196</span><span id="line-196">        // Mise à jour de la cible en passant</span>
-<span class="source-line-no">197</span><span id="line-197">        if (Math.abs(newCase.getX() - oldCase.getX()) == 2) {</span>
-<span class="source-line-no">198</span><span id="line-198">            plateau.updateEnPassantTarget(pawn, oldCase.getX(), newCase.getX());</span>
-<span class="source-line-no">199</span><span id="line-199">        } else {</span>
-<span class="source-line-no">200</span><span id="line-200">            plateau.updateEnPassantTarget(null, 0, 0);</span>
-<span class="source-line-no">201</span><span id="line-201">        }</span>
-<span class="source-line-no">202</span><span id="line-202">    }</span>
-<span class="source-line-no">203</span><span id="line-203"></span>
-<span class="source-line-no">204</span><span id="line-204">    /**</span>
-<span class="source-line-no">205</span><span id="line-205">     * Vérifie les conditions de fin de partie.</span>
-<span class="source-line-no">206</span><span id="line-206">     */</span>
-<span class="source-line-no">207</span><span id="line-207">    private void checkGameEndConditions() {</span>
-<span class="source-line-no">208</span><span id="line-208">        boolean isOpponentWhite = !plateau.isCurrentPlayerWhite();</span>
-<span class="source-line-no">209</span><span id="line-209">        if (plateau.isKingInCheck(isOpponentWhite)) {</span>
-<span class="source-line-no">210</span><span id="line-210">            if (plateau.isCheckMate(isOpponentWhite)) {</span>
-<span class="source-line-no">211</span><span id="line-211">                System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");</span>
-<span class="source-line-no">212</span><span id="line-212">                running = false;</span>
-<span class="source-line-no">213</span><span id="line-213">            } else {</span>
-<span class="source-line-no">214</span><span id="line-214">                System.out.println("Échec au roi " + (!plateau.isCurrentPlayerWhite() ? "blanc" : "noir") + " !");</span>
-<span class="source-line-no">215</span><span id="line-215">            }</span>
-<span class="source-line-no">216</span><span id="line-216">        } else if (plateau.isStalemate(isOpponentWhite)) {</span>
-<span class="source-line-no">217</span><span id="line-217">            System.out.println("Pat ! La partie est nulle !");</span>
-<span class="source-line-no">218</span><span id="line-218">            running = false;</span>
-<span class="source-line-no">219</span><span id="line-219">        } else if (plateau.isInsufficientMaterial()) {</span>
-<span class="source-line-no">220</span><span id="line-220">            System.out.println("Match nul par matériel insuffisant !");</span>
-<span class="source-line-no">221</span><span id="line-221">            running = false;</span>
-<span class="source-line-no">222</span><span id="line-222">        }</span>
-<span class="source-line-no">223</span><span id="line-223">    }</span>
-<span class="source-line-no">224</span><span id="line-224"></span>
-<span class="source-line-no">225</span><span id="line-225">    /**</span>
-<span class="source-line-no">226</span><span id="line-226">     * Récupère la pièce à une position donnée.</span>
-<span class="source-line-no">227</span><span id="line-227">     * @param x La coordonnée x.</span>
-<span class="source-line-no">228</span><span id="line-228">     * @param y La coordonnée y.</span>
-<span class="source-line-no">229</span><span id="line-229">     * @return La pièce à la position (x, y) ou null si la case est vide.</span>
-<span class="source-line-no">230</span><span id="line-230">     */</span>
-<span class="source-line-no">231</span><span id="line-231">    public Piece getPieceAt(int x, int y) {</span>
-<span class="source-line-no">232</span><span id="line-232">        Case targetCase = plateau.getCase(x, y);</span>
-<span class="source-line-no">233</span><span id="line-233">        return targetCase != null ? targetCase.getPiece() : null;</span>
-<span class="source-line-no">234</span><span id="line-234">    }</span>
-<span class="source-line-no">235</span><span id="line-235"></span>
-<span class="source-line-no">236</span><span id="line-236">    /**</span>
-<span class="source-line-no">237</span><span id="line-237">     * Effectue un mouvement.</span>
-<span class="source-line-no">238</span><span id="line-238">     * @param move Le mouvement à effectuer.</span>
-<span class="source-line-no">239</span><span id="line-239">     */</span>
-<span class="source-line-no">240</span><span id="line-240">    public synchronized void doMove(Move move) {</span>
-<span class="source-line-no">241</span><span id="line-241">        this.moveBuffer = move;</span>
-<span class="source-line-no">242</span><span id="line-242">        this.notify();</span>
-<span class="source-line-no">243</span><span id="line-243">    }</span>
-<span class="source-line-no">244</span><span id="line-244"></span>
-<span class="source-line-no">245</span><span id="line-245">    /**</span>
-<span class="source-line-no">246</span><span id="line-246">     * Vérifie si c'est au tour du joueur blanc.</span>
-<span class="source-line-no">247</span><span id="line-247">     * @return true si c'est au tour du joueur blanc, false sinon.</span>
-<span class="source-line-no">248</span><span id="line-248">     */</span>
-<span class="source-line-no">249</span><span id="line-249">    public boolean isWhiteTurn() {</span>
-<span class="source-line-no">250</span><span id="line-250">        return plateau.isCurrentPlayerWhite();</span>
-<span class="source-line-no">251</span><span id="line-251">    }</span>
-<span class="source-line-no">252</span><span id="line-252"></span>
-<span class="source-line-no">253</span><span id="line-253">    /**</span>
-<span class="source-line-no">254</span><span id="line-254">     * Exécute le mouvement.</span>
-<span class="source-line-no">255</span><span id="line-255">     */</span>
-<span class="source-line-no">256</span><span id="line-256">    @Override</span>
-<span class="source-line-no">257</span><span id="line-257">    public void run() {</span>
-<span class="source-line-no">258</span><span id="line-258">        while (running) {</span>
-<span class="source-line-no">259</span><span id="line-259">            synchronized (this) {</span>
-<span class="source-line-no">260</span><span id="line-260">                while (moveBuffer == null) {</span>
-<span class="source-line-no">261</span><span id="line-261">                    try {</span>
-<span class="source-line-no">262</span><span id="line-262">                        this.wait();</span>
-<span class="source-line-no">263</span><span id="line-263">                    } catch (InterruptedException e) {</span>
-<span class="source-line-no">264</span><span id="line-264">                        e.printStackTrace();</span>
-<span class="source-line-no">265</span><span id="line-265">                    }</span>
-<span class="source-line-no">266</span><span id="line-266">                }</span>
-<span class="source-line-no">267</span><span id="line-267"></span>
-<span class="source-line-no">268</span><span id="line-268">                if (moveBuffer.isMoveValid(plateau)) {</span>
-<span class="source-line-no">269</span><span id="line-269">                    movePiece(moveBuffer.getPiece(), moveBuffer.getDestination());</span>
-<span class="source-line-no">270</span><span id="line-270">                }</span>
-<span class="source-line-no">271</span><span id="line-271"></span>
-<span class="source-line-no">272</span><span id="line-272">                moveBuffer = null;</span>
-<span class="source-line-no">273</span><span id="line-273">            }</span>
-<span class="source-line-no">274</span><span id="line-274">        }</span>
-<span class="source-line-no">275</span><span id="line-275">    }</span>
-<span class="source-line-no">276</span><span id="line-276"></span>
-<span class="source-line-no">277</span><span id="line-277">    /**</span>
-<span class="source-line-no">278</span><span id="line-278">     * Arrête le jeu.</span>
-<span class="source-line-no">279</span><span id="line-279">     */</span>
-<span class="source-line-no">280</span><span id="line-280">    public void stop() {</span>
-<span class="source-line-no">281</span><span id="line-281">        running = false;</span>
-<span class="source-line-no">282</span><span id="line-282">    }</span>
-<span class="source-line-no">283</span><span id="line-283"></span>
-<span class="source-line-no">284</span><span id="line-284">    /**</span>
-<span class="source-line-no">285</span><span id="line-285">     * Récupère le plateau.</span>
-<span class="source-line-no">286</span><span id="line-286">     * @return Le plateau.</span>
-<span class="source-line-no">287</span><span id="line-287">     */</span>
-<span class="source-line-no">288</span><span id="line-288">    public Plateau getPlateau() {</span>
-<span class="source-line-no">289</span><span id="line-289">        return plateau;</span>
-<span class="source-line-no">290</span><span id="line-290">    }</span>
-<span class="source-line-no">291</span><span id="line-291"></span>
-<span class="source-line-no">292</span><span id="line-292">    /**</span>
-<span class="source-line-no">293</span><span id="line-293">     * Force la mise à jour.</span>
-<span class="source-line-no">294</span><span id="line-294">     */</span>
-<span class="source-line-no">295</span><span id="line-295">    public void forceUpdate() {</span>
-<span class="source-line-no">296</span><span id="line-296">        setChanged();</span>
-<span class="source-line-no">297</span><span id="line-297">        notifyObservers();</span>
-<span class="source-line-no">298</span><span id="line-298">    }</span>
-<span class="source-line-no">299</span><span id="line-299"></span>
-<span class="source-line-no">300</span><span id="line-300">    /**</span>
-<span class="source-line-no">301</span><span id="line-301">     * Joue un coup de l'IA.</span>
-<span class="source-line-no">302</span><span id="line-302">     */</span>
-<span class="source-line-no">303</span><span id="line-303">    public void playAIMove() {</span>
-<span class="source-line-no">304</span><span id="line-304">        if (ai == null || !isAIGame) return;</span>
-<span class="source-line-no">305</span><span id="line-305"></span>
-<span class="source-line-no">306</span><span id="line-306">        Move move = ai.getBestMove(plateau);</span>
-<span class="source-line-no">307</span><span id="line-307">        if (move != null) {</span>
-<span class="source-line-no">308</span><span id="line-308">            movePiece(move.getPiece(), move.getDestination());</span>
-<span class="source-line-no">309</span><span id="line-309">        }</span>
-<span class="source-line-no">310</span><span id="line-310">    }</span>
-<span class="source-line-no">311</span><span id="line-311"></span>
-<span class="source-line-no">312</span><span id="line-312">    /**</span>
-<span class="source-line-no">313</span><span id="line-313">     * Récupère les mouvements possibles pour une pièce.</span>
-<span class="source-line-no">314</span><span id="line-314">     * @param piece La pièce à évaluer.</span>
-<span class="source-line-no">315</span><span id="line-315">     * @return La liste des mouvements possibles.</span>
-<span class="source-line-no">316</span><span id="line-316">     */</span>
-<span class="source-line-no">317</span><span id="line-317">    public List&lt;Move&gt; getPossibleMoves(Piece piece) {</span>
-<span class="source-line-no">318</span><span id="line-318">        List&lt;Move&gt; moves = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">319</span><span id="line-319">        List&lt;int[]&gt; validMoves = plateau.filterValidMoves(piece);</span>
-<span class="source-line-no">320</span><span id="line-320">        </span>
-<span class="source-line-no">321</span><span id="line-321">        for (int[] coords : validMoves) {</span>
-<span class="source-line-no">322</span><span id="line-322">            moves.add(new Move(piece, plateau.getCase(coords[0], coords[1])));</span>
-<span class="source-line-no">323</span><span id="line-323">        }</span>
-<span class="source-line-no">324</span><span id="line-324">        </span>
-<span class="source-line-no">325</span><span id="line-325">        return moves;</span>
-<span class="source-line-no">326</span><span id="line-326">    }</span>
-<span class="source-line-no">327</span><span id="line-327"></span>
-<span class="source-line-no">328</span><span id="line-328">    /**</span>
-<span class="source-line-no">329</span><span id="line-329">     * Sauvegarde le plateau.</span>
-<span class="source-line-no">330</span><span id="line-330">     * @param filePath Le chemin de fichier.</span>
-<span class="source-line-no">331</span><span id="line-331">     * @throws IOException Si une erreur de sauvegarde survient.</span>
-<span class="source-line-no">332</span><span id="line-332">     */</span>
-<span class="source-line-no">333</span><span id="line-333">    public void saveGame(String filePath) throws IOException {</span>
-<span class="source-line-no">334</span><span id="line-334">        GameState gameState = new GameState(</span>
-<span class="source-line-no">335</span><span id="line-335">            plateau.getPieces(),</span>
-<span class="source-line-no">336</span><span id="line-336">            plateau.isCurrentPlayerWhite(),</span>
-<span class="source-line-no">337</span><span id="line-337">            plateau.getHasMoved(),</span>
-<span class="source-line-no">338</span><span id="line-338">            isAIGame,</span>
-<span class="source-line-no">339</span><span id="line-339">            ai != null &amp;&amp; ai.isWhite(),</span>
-<span class="source-line-no">340</span><span id="line-340">            ai != null ? ai.getDifficulty() : 0</span>
-<span class="source-line-no">341</span><span id="line-341">        );</span>
-<span class="source-line-no">342</span><span id="line-342"></span>
-<span class="source-line-no">343</span><span id="line-343">        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {</span>
-<span class="source-line-no">344</span><span id="line-344">            oos.writeObject(gameState);</span>
-<span class="source-line-no">345</span><span id="line-345">        }</span>
-<span class="source-line-no">346</span><span id="line-346">    }</span>
-<span class="source-line-no">347</span><span id="line-347"></span>
-<span class="source-line-no">348</span><span id="line-348">    /**</span>
-<span class="source-line-no">349</span><span id="line-349">     * Charge un plateau.</span>
-<span class="source-line-no">350</span><span id="line-350">     * @param filePath Le chemin de fichier.</span>
-<span class="source-line-no">351</span><span id="line-351">     * @throws IOException Si une erreur de chargement survient.</span>
-<span class="source-line-no">352</span><span id="line-352">     * @throws ClassNotFoundException Si une classe n'est pas trouvée.</span>
-<span class="source-line-no">353</span><span id="line-353">     */</span>
-<span class="source-line-no">354</span><span id="line-354">    public void loadGame(String filePath) throws IOException, ClassNotFoundException {</span>
-<span class="source-line-no">355</span><span id="line-355">        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {</span>
-<span class="source-line-no">356</span><span id="line-356">            GameState gameState = (GameState) ois.readObject();</span>
-<span class="source-line-no">357</span><span id="line-357">            </span>
-<span class="source-line-no">358</span><span id="line-358">            // Restaurer l'état du plateau</span>
-<span class="source-line-no">359</span><span id="line-359">            plateau = new Plateau();</span>
-<span class="source-line-no">360</span><span id="line-360">            for (Piece piece : gameState.getPieces()) {</span>
-<span class="source-line-no">361</span><span id="line-361">                plateau.getPieces().add(piece);</span>
-<span class="source-line-no">362</span><span id="line-362">                Case currentCase = piece.getCurrentCase();</span>
-<span class="source-line-no">363</span><span id="line-363">                plateau.getCase(currentCase.getX(), currentCase.getY()).setPiece(piece);</span>
-<span class="source-line-no">364</span><span id="line-364">            }</span>
-<span class="source-line-no">365</span><span id="line-365">            </span>
-<span class="source-line-no">366</span><span id="line-366">            plateau.setCurrentPlayerWhite(gameState.isCurrentPlayerWhite());</span>
-<span class="source-line-no">367</span><span id="line-367">            plateau.setHasMoved(gameState.getHasMoved());</span>
-<span class="source-line-no">368</span><span id="line-368">            </span>
-<span class="source-line-no">369</span><span id="line-369">            // Restaurer l'état de l'IA</span>
-<span class="source-line-no">370</span><span id="line-370">            isAIGame = gameState.isAIGame();</span>
-<span class="source-line-no">371</span><span id="line-371">            if (isAIGame) {</span>
-<span class="source-line-no">372</span><span id="line-372">                setAI(true, gameState.getAIDifficulty(), gameState.isAIWhite());</span>
-<span class="source-line-no">373</span><span id="line-373">            } else {</span>
-<span class="source-line-no">374</span><span id="line-374">                setAI(false, 0, false);</span>
-<span class="source-line-no">375</span><span id="line-375">            }</span>
-<span class="source-line-no">376</span><span id="line-376">            </span>
-<span class="source-line-no">377</span><span id="line-377">            setChanged();</span>
-<span class="source-line-no">378</span><span id="line-378">            notifyObservers();</span>
-<span class="source-line-no">379</span><span id="line-379">        }</span>
-<span class="source-line-no">380</span><span id="line-380">    }</span>
-<span class="source-line-no">381</span><span id="line-381"></span>
-<span class="source-line-no">382</span><span id="line-382">    /**</span>
-<span class="source-line-no">383</span><span id="line-383">     * Crée une pièce.</span>
-<span class="source-line-no">384</span><span id="line-384">     * @param type Le type de pièce.</span>
-<span class="source-line-no">385</span><span id="line-385">     * @param isWhite La couleur de la pièce.</span>
-<span class="source-line-no">386</span><span id="line-386">     * @param targetCase La case de destination.</span>
-<span class="source-line-no">387</span><span id="line-387">     * @return La pièce créée.</span>
-<span class="source-line-no">388</span><span id="line-388">     */</span>
-<span class="source-line-no">389</span><span id="line-389">    private Piece createPiece(String type, boolean isWhite, Case targetCase) {</span>
-<span class="source-line-no">390</span><span id="line-390">        return switch (type) {</span>
-<span class="source-line-no">391</span><span id="line-391">            case "King" -&gt; new model.pieces.King(isWhite, targetCase);</span>
-<span class="source-line-no">392</span><span id="line-392">            case "Queen" -&gt; new model.pieces.Queen(isWhite, targetCase);</span>
-<span class="source-line-no">393</span><span id="line-393">            case "Rook" -&gt; new model.pieces.Rook(isWhite, targetCase);</span>
-<span class="source-line-no">394</span><span id="line-394">            case "Bishop" -&gt; new model.pieces.Bishop(isWhite, targetCase);</span>
-<span class="source-line-no">395</span><span id="line-395">            case "Knight" -&gt; new model.pieces.Knight(isWhite, targetCase);</span>
-<span class="source-line-no">396</span><span id="line-396">            case "Pawn" -&gt; new model.pieces.Pawn(isWhite, targetCase);</span>
-<span class="source-line-no">397</span><span id="line-397">            default -&gt; null;</span>
-<span class="source-line-no">398</span><span id="line-398">        };</span>
+<span class="source-line-no">013</span><span id="line-13">import java.util.HashMap;</span>
+<span class="source-line-no">014</span><span id="line-14"></span>
+<span class="source-line-no">015</span><span id="line-15">import model.Move;</span>
+<span class="source-line-no">016</span><span id="line-16">import model.Piece;</span>
+<span class="source-line-no">017</span><span id="line-17">import model.Plateau;</span>
+<span class="source-line-no">018</span><span id="line-18">import model.pieces.King;</span>
+<span class="source-line-no">019</span><span id="line-19">import model.Case;</span>
+<span class="source-line-no">020</span><span id="line-20">import model.GameState;</span>
+<span class="source-line-no">021</span><span id="line-21"></span>
+<span class="source-line-no">022</span><span id="line-22">/**</span>
+<span class="source-line-no">023</span><span id="line-23"> * Classe principale du jeu d'échecs.</span>
+<span class="source-line-no">024</span><span id="line-24"> * Gère le plateau, l'IA, les mouvements, etc.</span>
+<span class="source-line-no">025</span><span id="line-25"> * Implémente l'Observable pour notifier les observateurs lorsque le plateau est mis à jour.</span>
+<span class="source-line-no">026</span><span id="line-26"> */</span>
+<span class="source-line-no">027</span><span id="line-27">public class Core extends Observable implements Runnable {</span>
+<span class="source-line-no">028</span><span id="line-28">    private Move moveBuffer = null;</span>
+<span class="source-line-no">029</span><span id="line-29">    private boolean running = true;</span>
+<span class="source-line-no">030</span><span id="line-30">    private Plateau plateau;</span>
+<span class="source-line-no">031</span><span id="line-31">    private AI ai = null;</span>
+<span class="source-line-no">032</span><span id="line-32">    private boolean isAIGame = false;</span>
+<span class="source-line-no">033</span><span id="line-33">    private boolean currentPlayer; // true for white, false for black</span>
+<span class="source-line-no">034</span><span id="line-34"></span>
+<span class="source-line-no">035</span><span id="line-35">    /**</span>
+<span class="source-line-no">036</span><span id="line-36">     * Constructeur de la classe Core.</span>
+<span class="source-line-no">037</span><span id="line-37">     * Initialise le plateau et le joueur actif.</span>
+<span class="source-line-no">038</span><span id="line-38">     */</span>
+<span class="source-line-no">039</span><span id="line-39">    public Core() {</span>
+<span class="source-line-no">040</span><span id="line-40">        this.plateau = new Plateau();</span>
+<span class="source-line-no">041</span><span id="line-41">        plateau.initPieces();</span>
+<span class="source-line-no">042</span><span id="line-42">        currentPlayer = true; // Le blanc commence</span>
+<span class="source-line-no">043</span><span id="line-43">    }</span>
+<span class="source-line-no">044</span><span id="line-44"></span>
+<span class="source-line-no">045</span><span id="line-45">    /**</span>
+<span class="source-line-no">046</span><span id="line-46">     * </span>
+<span class="source-line-no">047</span><span id="line-47">     * @param enabled</span>
+<span class="source-line-no">048</span><span id="line-48">     * @param difficulty</span>
+<span class="source-line-no">049</span><span id="line-49">     * @param aiIsWhite</span>
+<span class="source-line-no">050</span><span id="line-50">     */</span>
+<span class="source-line-no">051</span><span id="line-51">    public void setAI(boolean enabled, int difficulty, boolean aiIsWhite) {</span>
+<span class="source-line-no">052</span><span id="line-52">        if (enabled) {</span>
+<span class="source-line-no">053</span><span id="line-53">            this.ai = new AI(difficulty, aiIsWhite);</span>
+<span class="source-line-no">054</span><span id="line-54">            this.isAIGame = true;</span>
+<span class="source-line-no">055</span><span id="line-55">        } else {</span>
+<span class="source-line-no">056</span><span id="line-56">            this.ai = null;</span>
+<span class="source-line-no">057</span><span id="line-57">            this.isAIGame = false;</span>
+<span class="source-line-no">058</span><span id="line-58">        }</span>
+<span class="source-line-no">059</span><span id="line-59">    }</span>
+<span class="source-line-no">060</span><span id="line-60"></span>
+<span class="source-line-no">061</span><span id="line-61">    /**</span>
+<span class="source-line-no">062</span><span id="line-62">     * Initialise le jeu.</span>
+<span class="source-line-no">063</span><span id="line-63">     */</span>
+<span class="source-line-no">064</span><span id="line-64">    public void initGame() {</span>
+<span class="source-line-no">065</span><span id="line-65">        Thread gameThread = new Thread(this);</span>
+<span class="source-line-no">066</span><span id="line-66">        gameThread.start();</span>
+<span class="source-line-no">067</span><span id="line-67">    }</span>
+<span class="source-line-no">068</span><span id="line-68"></span>
+<span class="source-line-no">069</span><span id="line-69">    /**</span>
+<span class="source-line-no">070</span><span id="line-70">     * Effectue un mouvement de pièce.</span>
+<span class="source-line-no">071</span><span id="line-71">     * @param piece La pièce à déplacer.</span>
+<span class="source-line-no">072</span><span id="line-72">     * @param newCase La case de destination.</span>
+<span class="source-line-no">073</span><span id="line-73">     */</span>
+<span class="source-line-no">074</span><span id="line-74">    public void movePiece(Piece piece, Case newCase) {</span>
+<span class="source-line-no">075</span><span id="line-75">        if (piece == null || newCase == null) return;</span>
+<span class="source-line-no">076</span><span id="line-76"></span>
+<span class="source-line-no">077</span><span id="line-77">        // Vérifier si c'est le bon tour</span>
+<span class="source-line-no">078</span><span id="line-78">        if (piece.getColor() != plateau.isCurrentPlayerWhite()) {</span>
+<span class="source-line-no">079</span><span id="line-79">            System.out.println("Ce n'est pas à ton tour !");</span>
+<span class="source-line-no">080</span><span id="line-80">            return;</span>
+<span class="source-line-no">081</span><span id="line-81">        }</span>
+<span class="source-line-no">082</span><span id="line-82"></span>
+<span class="source-line-no">083</span><span id="line-83">        Case oldCase = piece.getCurrentCase();</span>
+<span class="source-line-no">084</span><span id="line-84">        </span>
+<span class="source-line-no">085</span><span id="line-85">        // Vérifier si le mouvement est valide</span>
+<span class="source-line-no">086</span><span id="line-86">        boolean isValidMove = false;</span>
+<span class="source-line-no">087</span><span id="line-87">        List&lt;int[]&gt; validMoves = plateau.filterValidMoves(piece);</span>
+<span class="source-line-no">088</span><span id="line-88">        for (int[] move : validMoves) {</span>
+<span class="source-line-no">089</span><span id="line-89">            if (move[0] == newCase.getX() &amp;&amp; move[1] == newCase.getY()) {</span>
+<span class="source-line-no">090</span><span id="line-90">                isValidMove = true;</span>
+<span class="source-line-no">091</span><span id="line-91">                break;</span>
+<span class="source-line-no">092</span><span id="line-92">            }</span>
+<span class="source-line-no">093</span><span id="line-93">        }</span>
+<span class="source-line-no">094</span><span id="line-94"></span>
+<span class="source-line-no">095</span><span id="line-95">        if (!isValidMove) {</span>
+<span class="source-line-no">096</span><span id="line-96">            System.out.println("Mouvement invalide !");</span>
+<span class="source-line-no">097</span><span id="line-97">            return;</span>
+<span class="source-line-no">098</span><span id="line-98">        }</span>
+<span class="source-line-no">099</span><span id="line-99"></span>
+<span class="source-line-no">100</span><span id="line-100">        // Gestion du roque</span>
+<span class="source-line-no">101</span><span id="line-101">        if (piece instanceof model.pieces.King &amp;&amp; Math.abs(newCase.getY() - oldCase.getY()) == 2) {</span>
+<span class="source-line-no">102</span><span id="line-102">            handleCastling(piece, oldCase, newCase);</span>
+<span class="source-line-no">103</span><span id="line-103">        }</span>
+<span class="source-line-no">104</span><span id="line-104"></span>
+<span class="source-line-no">105</span><span id="line-105">        // Gestion de la capture en passant</span>
+<span class="source-line-no">106</span><span id="line-106">        if (piece instanceof model.pieces.Pawn) {</span>
+<span class="source-line-no">107</span><span id="line-107">            handleEnPassant(piece, oldCase, newCase);</span>
+<span class="source-line-no">108</span><span id="line-108">        }</span>
+<span class="source-line-no">109</span><span id="line-109"></span>
+<span class="source-line-no">110</span><span id="line-110">        // Effectuer le mouvement</span>
+<span class="source-line-no">111</span><span id="line-111">        Piece capturedPiece = newCase.getPiece();</span>
+<span class="source-line-no">112</span><span id="line-112">        oldCase.setPiece(null);</span>
+<span class="source-line-no">113</span><span id="line-113">        newCase.setPiece(piece);</span>
+<span class="source-line-no">114</span><span id="line-114">        piece.setCurrentCase(newCase);</span>
+<span class="source-line-no">115</span><span id="line-115"></span>
+<span class="source-line-no">116</span><span id="line-116">        // Vérifier si le roi est toujours en échec après le mouvement</span>
+<span class="source-line-no">117</span><span id="line-117">        if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {</span>
+<span class="source-line-no">118</span><span id="line-118">            // Annuler le mouvement</span>
+<span class="source-line-no">119</span><span id="line-119">            newCase.setPiece(capturedPiece);</span>
+<span class="source-line-no">120</span><span id="line-120">            oldCase.setPiece(piece);</span>
+<span class="source-line-no">121</span><span id="line-121">            piece.setCurrentCase(oldCase);</span>
+<span class="source-line-no">122</span><span id="line-122">            System.out.println("Mouvement invalide : le roi reste en échec !");</span>
+<span class="source-line-no">123</span><span id="line-123">            return;</span>
+<span class="source-line-no">124</span><span id="line-124">        }</span>
+<span class="source-line-no">125</span><span id="line-125"></span>
+<span class="source-line-no">126</span><span id="line-126">        // Gérer la capture</span>
+<span class="source-line-no">127</span><span id="line-127">        if (capturedPiece != null) {</span>
+<span class="source-line-no">128</span><span id="line-128">            plateau.getPieces().remove(capturedPiece);</span>
+<span class="source-line-no">129</span><span id="line-129">        }</span>
+<span class="source-line-no">130</span><span id="line-130"></span>
+<span class="source-line-no">131</span><span id="line-131">        // Mettre à jour l'état du jeu</span>
+<span class="source-line-no">132</span><span id="line-132">        plateau.getHasMoved().put(piece, true);</span>
+<span class="source-line-no">133</span><span id="line-133"></span>
+<span class="source-line-no">134</span><span id="line-134">        // Gestion de la promotion des pions</span>
+<span class="source-line-no">135</span><span id="line-135">        if (piece instanceof model.pieces.Pawn) {</span>
+<span class="source-line-no">136</span><span id="line-136">            if ((piece.getColor() &amp;&amp; newCase.getX() == 0) || (!piece.getColor() &amp;&amp; newCase.getX() == 7)) {</span>
+<span class="source-line-no">137</span><span id="line-137">                plateau.promotePawn(piece, plateau.getPieces());</span>
+<span class="source-line-no">138</span><span id="line-138">            }</span>
+<span class="source-line-no">139</span><span id="line-139">        }</span>
+<span class="source-line-no">140</span><span id="line-140"></span>
+<span class="source-line-no">141</span><span id="line-141">        // Vérifier les conditions de fin de partie</span>
+<span class="source-line-no">142</span><span id="line-142">        checkGameEndConditions();</span>
+<span class="source-line-no">143</span><span id="line-143"></span>
+<span class="source-line-no">144</span><span id="line-144">        // Changer de tour</span>
+<span class="source-line-no">145</span><span id="line-145">        plateau.setCurrentPlayerWhite(!plateau.isCurrentPlayerWhite());</span>
+<span class="source-line-no">146</span><span id="line-146">        setChanged();</span>
+<span class="source-line-no">147</span><span id="line-147">        notifyObservers();</span>
+<span class="source-line-no">148</span><span id="line-148"></span>
+<span class="source-line-no">149</span><span id="line-149">        // Faire jouer l'IA si c'est son tour</span>
+<span class="source-line-no">150</span><span id="line-150">        if (isAIGame &amp;&amp; ai != null &amp;&amp; plateau.isCurrentPlayerWhite() == ai.isWhite() &amp;&amp; running) {</span>
+<span class="source-line-no">151</span><span id="line-151">            playAIMove();</span>
+<span class="source-line-no">152</span><span id="line-152">        }</span>
+<span class="source-line-no">153</span><span id="line-153">    }</span>
+<span class="source-line-no">154</span><span id="line-154"></span>
+<span class="source-line-no">155</span><span id="line-155">    /**</span>
+<span class="source-line-no">156</span><span id="line-156">     * Gestion du roque.</span>
+<span class="source-line-no">157</span><span id="line-157">     * @param king Le roi à déplacer.</span>
+<span class="source-line-no">158</span><span id="line-158">     * @param oldCase La case initiale du roi.</span>
+<span class="source-line-no">159</span><span id="line-159">     * @param newCase La case de destination du roi.</span>
+<span class="source-line-no">160</span><span id="line-160">     */</span>
+<span class="source-line-no">161</span><span id="line-161">    private void handleCastling(Piece king, Case oldCase, Case newCase) {</span>
+<span class="source-line-no">162</span><span id="line-162">        boolean isKingSide = newCase.getY() &gt; oldCase.getY();</span>
+<span class="source-line-no">163</span><span id="line-163">        int rookOldY = isKingSide ? 7 : 0;</span>
+<span class="source-line-no">164</span><span id="line-164">        int rookNewY = isKingSide ? 5 : 3;</span>
+<span class="source-line-no">165</span><span id="line-165"></span>
+<span class="source-line-no">166</span><span id="line-166">        Case rookOldCase = plateau.getCase(oldCase.getX(), rookOldY);</span>
+<span class="source-line-no">167</span><span id="line-167">        Case rookNewCase = plateau.getCase(oldCase.getX(), rookNewY);</span>
+<span class="source-line-no">168</span><span id="line-168"></span>
+<span class="source-line-no">169</span><span id="line-169">        Piece rook = rookOldCase.getPiece();</span>
+<span class="source-line-no">170</span><span id="line-170">        if (rook != null &amp;&amp; rook instanceof model.pieces.Rook) {</span>
+<span class="source-line-no">171</span><span id="line-171">            rookOldCase.setPiece(null);</span>
+<span class="source-line-no">172</span><span id="line-172">            rookNewCase.setPiece(rook);</span>
+<span class="source-line-no">173</span><span id="line-173">            rook.setCurrentCase(rookNewCase);</span>
+<span class="source-line-no">174</span><span id="line-174">            plateau.getHasMoved().put(rook, true);</span>
+<span class="source-line-no">175</span><span id="line-175">        }</span>
+<span class="source-line-no">176</span><span id="line-176">    }</span>
+<span class="source-line-no">177</span><span id="line-177"></span>
+<span class="source-line-no">178</span><span id="line-178">    /**</span>
+<span class="source-line-no">179</span><span id="line-179">     * Gestion de la capture en passant.</span>
+<span class="source-line-no">180</span><span id="line-180">     * @param pawn Le pion à déplacer.</span>
+<span class="source-line-no">181</span><span id="line-181">     * @param oldCase La case initiale du pion.</span>
+<span class="source-line-no">182</span><span id="line-182">     * @param newCase La case de destination du pion.</span>
+<span class="source-line-no">183</span><span id="line-183">     */</span>
+<span class="source-line-no">184</span><span id="line-184">    private void handleEnPassant(Piece pawn, Case oldCase, Case newCase) {</span>
+<span class="source-line-no">185</span><span id="line-185">        // Capture en passant</span>
+<span class="source-line-no">186</span><span id="line-186">        if (newCase.getPiece() == null &amp;&amp; Math.abs(newCase.getY() - oldCase.getY()) == 1) {</span>
+<span class="source-line-no">187</span><span id="line-187">            Piece enPassantTarget = plateau.getEnPassantTarget();</span>
+<span class="source-line-no">188</span><span id="line-188">            if (enPassantTarget != null) {</span>
+<span class="source-line-no">189</span><span id="line-189">                Case capturedPawnCase = plateau.getCase(oldCase.getX(), newCase.getY());</span>
+<span class="source-line-no">190</span><span id="line-190">                if (capturedPawnCase != null &amp;&amp; capturedPawnCase.getPiece() == enPassantTarget) {</span>
+<span class="source-line-no">191</span><span id="line-191">                    capturedPawnCase.setPiece(null);</span>
+<span class="source-line-no">192</span><span id="line-192">                    plateau.getPieces().remove(enPassantTarget);</span>
+<span class="source-line-no">193</span><span id="line-193">                }</span>
+<span class="source-line-no">194</span><span id="line-194">            }</span>
+<span class="source-line-no">195</span><span id="line-195">        }</span>
+<span class="source-line-no">196</span><span id="line-196"></span>
+<span class="source-line-no">197</span><span id="line-197">        // Mise à jour de la cible en passant</span>
+<span class="source-line-no">198</span><span id="line-198">        if (Math.abs(newCase.getX() - oldCase.getX()) == 2) {</span>
+<span class="source-line-no">199</span><span id="line-199">            plateau.updateEnPassantTarget(pawn, oldCase.getX(), newCase.getX());</span>
+<span class="source-line-no">200</span><span id="line-200">        } else {</span>
+<span class="source-line-no">201</span><span id="line-201">            plateau.updateEnPassantTarget(null, 0, 0);</span>
+<span class="source-line-no">202</span><span id="line-202">        }</span>
+<span class="source-line-no">203</span><span id="line-203">    }</span>
+<span class="source-line-no">204</span><span id="line-204"></span>
+<span class="source-line-no">205</span><span id="line-205">    /**</span>
+<span class="source-line-no">206</span><span id="line-206">     * Vérifie les conditions de fin de partie.</span>
+<span class="source-line-no">207</span><span id="line-207">     */</span>
+<span class="source-line-no">208</span><span id="line-208">    private void checkGameEndConditions() {</span>
+<span class="source-line-no">209</span><span id="line-209">        boolean isOpponentWhite = !plateau.isCurrentPlayerWhite();</span>
+<span class="source-line-no">210</span><span id="line-210">        if (plateau.isKingInCheck(isOpponentWhite)) {</span>
+<span class="source-line-no">211</span><span id="line-211">            if (plateau.isCheckMate(isOpponentWhite)) {</span>
+<span class="source-line-no">212</span><span id="line-212">                System.out.println("Échec et mat ! " + (plateau.isCurrentPlayerWhite() ? "Blanc" : "Noir") + " gagne !");</span>
+<span class="source-line-no">213</span><span id="line-213">                running = false;</span>
+<span class="source-line-no">214</span><span id="line-214">            } else {</span>
+<span class="source-line-no">215</span><span id="line-215">                System.out.println("Échec au roi " + (!plateau.isCurrentPlayerWhite() ? "blanc" : "noir") + " !");</span>
+<span class="source-line-no">216</span><span id="line-216">            }</span>
+<span class="source-line-no">217</span><span id="line-217">        } else if (plateau.isStalemate(isOpponentWhite)) {</span>
+<span class="source-line-no">218</span><span id="line-218">            System.out.println("Pat ! La partie est nulle !");</span>
+<span class="source-line-no">219</span><span id="line-219">            running = false;</span>
+<span class="source-line-no">220</span><span id="line-220">        } else if (plateau.isInsufficientMaterial()) {</span>
+<span class="source-line-no">221</span><span id="line-221">            System.out.println("Match nul par matériel insuffisant !");</span>
+<span class="source-line-no">222</span><span id="line-222">            running = false;</span>
+<span class="source-line-no">223</span><span id="line-223">        }</span>
+<span class="source-line-no">224</span><span id="line-224">    }</span>
+<span class="source-line-no">225</span><span id="line-225"></span>
+<span class="source-line-no">226</span><span id="line-226">    /**</span>
+<span class="source-line-no">227</span><span id="line-227">     * Récupère la pièce à une position donnée.</span>
+<span class="source-line-no">228</span><span id="line-228">     * @param x La coordonnée x.</span>
+<span class="source-line-no">229</span><span id="line-229">     * @param y La coordonnée y.</span>
+<span class="source-line-no">230</span><span id="line-230">     * @return La pièce à la position (x, y) ou null si la case est vide.</span>
+<span class="source-line-no">231</span><span id="line-231">     */</span>
+<span class="source-line-no">232</span><span id="line-232">    public Piece getPieceAt(int x, int y) {</span>
+<span class="source-line-no">233</span><span id="line-233">        Case targetCase = plateau.getCase(x, y);</span>
+<span class="source-line-no">234</span><span id="line-234">        return targetCase != null ? targetCase.getPiece() : null;</span>
+<span class="source-line-no">235</span><span id="line-235">    }</span>
+<span class="source-line-no">236</span><span id="line-236"></span>
+<span class="source-line-no">237</span><span id="line-237">    /**</span>
+<span class="source-line-no">238</span><span id="line-238">     * Effectue un mouvement.</span>
+<span class="source-line-no">239</span><span id="line-239">     * @param move Le mouvement à effectuer.</span>
+<span class="source-line-no">240</span><span id="line-240">     */</span>
+<span class="source-line-no">241</span><span id="line-241">    public synchronized void doMove(Move move) {</span>
+<span class="source-line-no">242</span><span id="line-242">        this.moveBuffer = move;</span>
+<span class="source-line-no">243</span><span id="line-243">        this.notify();</span>
+<span class="source-line-no">244</span><span id="line-244">    }</span>
+<span class="source-line-no">245</span><span id="line-245"></span>
+<span class="source-line-no">246</span><span id="line-246">    /**</span>
+<span class="source-line-no">247</span><span id="line-247">     * Vérifie si c'est au tour du joueur blanc.</span>
+<span class="source-line-no">248</span><span id="line-248">     * @return true si c'est au tour du joueur blanc, false sinon.</span>
+<span class="source-line-no">249</span><span id="line-249">     */</span>
+<span class="source-line-no">250</span><span id="line-250">    public boolean isWhiteTurn() {</span>
+<span class="source-line-no">251</span><span id="line-251">        return plateau.isCurrentPlayerWhite();</span>
+<span class="source-line-no">252</span><span id="line-252">    }</span>
+<span class="source-line-no">253</span><span id="line-253"></span>
+<span class="source-line-no">254</span><span id="line-254">    /**</span>
+<span class="source-line-no">255</span><span id="line-255">     * Exécute le mouvement.</span>
+<span class="source-line-no">256</span><span id="line-256">     */</span>
+<span class="source-line-no">257</span><span id="line-257">    @Override</span>
+<span class="source-line-no">258</span><span id="line-258">    public void run() {</span>
+<span class="source-line-no">259</span><span id="line-259">        while (running) {</span>
+<span class="source-line-no">260</span><span id="line-260">            synchronized (this) {</span>
+<span class="source-line-no">261</span><span id="line-261">                while (moveBuffer == null) {</span>
+<span class="source-line-no">262</span><span id="line-262">                    try {</span>
+<span class="source-line-no">263</span><span id="line-263">                        this.wait();</span>
+<span class="source-line-no">264</span><span id="line-264">                    } catch (InterruptedException e) {</span>
+<span class="source-line-no">265</span><span id="line-265">                        e.printStackTrace();</span>
+<span class="source-line-no">266</span><span id="line-266">                    }</span>
+<span class="source-line-no">267</span><span id="line-267">                }</span>
+<span class="source-line-no">268</span><span id="line-268"></span>
+<span class="source-line-no">269</span><span id="line-269">                if (moveBuffer.isMoveValid(plateau)) {</span>
+<span class="source-line-no">270</span><span id="line-270">                    movePiece(moveBuffer.getPiece(), moveBuffer.getDestination());</span>
+<span class="source-line-no">271</span><span id="line-271">                }</span>
+<span class="source-line-no">272</span><span id="line-272"></span>
+<span class="source-line-no">273</span><span id="line-273">                moveBuffer = null;</span>
+<span class="source-line-no">274</span><span id="line-274">            }</span>
+<span class="source-line-no">275</span><span id="line-275">        }</span>
+<span class="source-line-no">276</span><span id="line-276">    }</span>
+<span class="source-line-no">277</span><span id="line-277"></span>
+<span class="source-line-no">278</span><span id="line-278">    /**</span>
+<span class="source-line-no">279</span><span id="line-279">     * Arrête le jeu.</span>
+<span class="source-line-no">280</span><span id="line-280">     */</span>
+<span class="source-line-no">281</span><span id="line-281">    public void stop() {</span>
+<span class="source-line-no">282</span><span id="line-282">        running = false;</span>
+<span class="source-line-no">283</span><span id="line-283">    }</span>
+<span class="source-line-no">284</span><span id="line-284"></span>
+<span class="source-line-no">285</span><span id="line-285">    /**</span>
+<span class="source-line-no">286</span><span id="line-286">     * Récupère le plateau.</span>
+<span class="source-line-no">287</span><span id="line-287">     * @return Le plateau.</span>
+<span class="source-line-no">288</span><span id="line-288">     */</span>
+<span class="source-line-no">289</span><span id="line-289">    public Plateau getPlateau() {</span>
+<span class="source-line-no">290</span><span id="line-290">        return plateau;</span>
+<span class="source-line-no">291</span><span id="line-291">    }</span>
+<span class="source-line-no">292</span><span id="line-292"></span>
+<span class="source-line-no">293</span><span id="line-293">    /**</span>
+<span class="source-line-no">294</span><span id="line-294">     * Force la mise à jour.</span>
+<span class="source-line-no">295</span><span id="line-295">     */</span>
+<span class="source-line-no">296</span><span id="line-296">    public void forceUpdate() {</span>
+<span class="source-line-no">297</span><span id="line-297">        setChanged();</span>
+<span class="source-line-no">298</span><span id="line-298">        notifyObservers();</span>
+<span class="source-line-no">299</span><span id="line-299">    }</span>
+<span class="source-line-no">300</span><span id="line-300"></span>
+<span class="source-line-no">301</span><span id="line-301">    /**</span>
+<span class="source-line-no">302</span><span id="line-302">     * Joue un coup de l'IA.</span>
+<span class="source-line-no">303</span><span id="line-303">     */</span>
+<span class="source-line-no">304</span><span id="line-304">    public void playAIMove() {</span>
+<span class="source-line-no">305</span><span id="line-305">        if (ai == null || !isAIGame) return;</span>
+<span class="source-line-no">306</span><span id="line-306"></span>
+<span class="source-line-no">307</span><span id="line-307">        Move move = ai.getBestMove(plateau);</span>
+<span class="source-line-no">308</span><span id="line-308">        if (move != null) {</span>
+<span class="source-line-no">309</span><span id="line-309">            movePiece(move.getPiece(), move.getDestination());</span>
+<span class="source-line-no">310</span><span id="line-310">        }</span>
+<span class="source-line-no">311</span><span id="line-311">    }</span>
+<span class="source-line-no">312</span><span id="line-312"></span>
+<span class="source-line-no">313</span><span id="line-313">    /**</span>
+<span class="source-line-no">314</span><span id="line-314">     * Récupère les mouvements possibles pour une pièce.</span>
+<span class="source-line-no">315</span><span id="line-315">     * @param piece La pièce à évaluer.</span>
+<span class="source-line-no">316</span><span id="line-316">     * @return La liste des mouvements possibles.</span>
+<span class="source-line-no">317</span><span id="line-317">     */</span>
+<span class="source-line-no">318</span><span id="line-318">    public List&lt;Move&gt; getPossibleMoves(Piece piece) {</span>
+<span class="source-line-no">319</span><span id="line-319">        List&lt;Move&gt; moves = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">320</span><span id="line-320">        List&lt;int[]&gt; validMoves = plateau.filterValidMoves(piece);</span>
+<span class="source-line-no">321</span><span id="line-321">        </span>
+<span class="source-line-no">322</span><span id="line-322">        for (int[] coords : validMoves) {</span>
+<span class="source-line-no">323</span><span id="line-323">            moves.add(new Move(piece, plateau.getCase(coords[0], coords[1])));</span>
+<span class="source-line-no">324</span><span id="line-324">        }</span>
+<span class="source-line-no">325</span><span id="line-325">        </span>
+<span class="source-line-no">326</span><span id="line-326">        return moves;</span>
+<span class="source-line-no">327</span><span id="line-327">    }</span>
+<span class="source-line-no">328</span><span id="line-328"></span>
+<span class="source-line-no">329</span><span id="line-329">    /**</span>
+<span class="source-line-no">330</span><span id="line-330">     * Sauvegarde le plateau.</span>
+<span class="source-line-no">331</span><span id="line-331">     * @param filePath Le chemin de fichier.</span>
+<span class="source-line-no">332</span><span id="line-332">     * @throws IOException Si une erreur de sauvegarde survient.</span>
+<span class="source-line-no">333</span><span id="line-333">     */</span>
+<span class="source-line-no">334</span><span id="line-334">    public void saveGame(String filePath) throws IOException {</span>
+<span class="source-line-no">335</span><span id="line-335">        GameState gameState = new GameState(</span>
+<span class="source-line-no">336</span><span id="line-336">            plateau.getPieces(),</span>
+<span class="source-line-no">337</span><span id="line-337">            plateau.isCurrentPlayerWhite(),</span>
+<span class="source-line-no">338</span><span id="line-338">            plateau.getHasMoved(),</span>
+<span class="source-line-no">339</span><span id="line-339">            isAIGame,</span>
+<span class="source-line-no">340</span><span id="line-340">            ai != null &amp;&amp; ai.isWhite(),</span>
+<span class="source-line-no">341</span><span id="line-341">            ai != null ? ai.getDifficulty() : 0,</span>
+<span class="source-line-no">342</span><span id="line-342">            plateau.getEnPassantTarget()</span>
+<span class="source-line-no">343</span><span id="line-343">        );</span>
+<span class="source-line-no">344</span><span id="line-344"></span>
+<span class="source-line-no">345</span><span id="line-345">        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {</span>
+<span class="source-line-no">346</span><span id="line-346">            oos.writeObject(gameState);</span>
+<span class="source-line-no">347</span><span id="line-347">        }</span>
+<span class="source-line-no">348</span><span id="line-348">    }</span>
+<span class="source-line-no">349</span><span id="line-349"></span>
+<span class="source-line-no">350</span><span id="line-350">    /**</span>
+<span class="source-line-no">351</span><span id="line-351">     * Charge une partie sauvegardée.</span>
+<span class="source-line-no">352</span><span id="line-352">     * @param filePath Le chemin du fichier de sauvegarde</span>
+<span class="source-line-no">353</span><span id="line-353">     * @throws IOException En cas d'erreur de lecture</span>
+<span class="source-line-no">354</span><span id="line-354">     * @throws ClassNotFoundException Si la classe n'est pas trouvée</span>
+<span class="source-line-no">355</span><span id="line-355">     */</span>
+<span class="source-line-no">356</span><span id="line-356">    public void loadGame(String filePath) throws IOException, ClassNotFoundException {</span>
+<span class="source-line-no">357</span><span id="line-357">        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {</span>
+<span class="source-line-no">358</span><span id="line-358">            GameState gameState = (GameState) ois.readObject();</span>
+<span class="source-line-no">359</span><span id="line-359">            </span>
+<span class="source-line-no">360</span><span id="line-360">            // Créer un nouveau plateau</span>
+<span class="source-line-no">361</span><span id="line-361">            plateau = new Plateau();</span>
+<span class="source-line-no">362</span><span id="line-362">            </span>
+<span class="source-line-no">363</span><span id="line-363">            // Réinitialiser le plateau</span>
+<span class="source-line-no">364</span><span id="line-364">            plateau.getPieces().clear();</span>
+<span class="source-line-no">365</span><span id="line-365">            for (int i = 0; i &lt; 8; i++) {</span>
+<span class="source-line-no">366</span><span id="line-366">                for (int j = 0; j &lt; 8; j++) {</span>
+<span class="source-line-no">367</span><span id="line-367">                    plateau.getCase(i, j).setPiece(null);</span>
+<span class="source-line-no">368</span><span id="line-368">                }</span>
+<span class="source-line-no">369</span><span id="line-369">            }</span>
+<span class="source-line-no">370</span><span id="line-370">            </span>
+<span class="source-line-no">371</span><span id="line-371">            // Restaurer les pièces</span>
+<span class="source-line-no">372</span><span id="line-372">            for (Piece piece : gameState.getPieces()) {</span>
+<span class="source-line-no">373</span><span id="line-373">                plateau.getPieces().add(piece);</span>
+<span class="source-line-no">374</span><span id="line-374">                Case currentCase = piece.getCurrentCase();</span>
+<span class="source-line-no">375</span><span id="line-375">                if (currentCase != null) {</span>
+<span class="source-line-no">376</span><span id="line-376">                    Case plateauCase = plateau.getCase(currentCase.getX(), currentCase.getY());</span>
+<span class="source-line-no">377</span><span id="line-377">                    plateauCase.setPiece(piece);</span>
+<span class="source-line-no">378</span><span id="line-378">                    piece.setCurrentCase(plateauCase);</span>
+<span class="source-line-no">379</span><span id="line-379">                }</span>
+<span class="source-line-no">380</span><span id="line-380">            }</span>
+<span class="source-line-no">381</span><span id="line-381">            </span>
+<span class="source-line-no">382</span><span id="line-382">            // Restaurer l'état du jeu</span>
+<span class="source-line-no">383</span><span id="line-383">            plateau.setCurrentPlayerWhite(gameState.isCurrentPlayerWhite());</span>
+<span class="source-line-no">384</span><span id="line-384">            plateau.setHasMoved(new HashMap&lt;&gt;(gameState.getHasMoved()));</span>
+<span class="source-line-no">385</span><span id="line-385">            plateau.setEnPassantTarget(gameState.getEnPassantTarget());</span>
+<span class="source-line-no">386</span><span id="line-386">            </span>
+<span class="source-line-no">387</span><span id="line-387">            // Restaurer l'état de l'IA si nécessaire</span>
+<span class="source-line-no">388</span><span id="line-388">            this.isAIGame = gameState.isAIGame();</span>
+<span class="source-line-no">389</span><span id="line-389">            if (this.isAIGame) {</span>
+<span class="source-line-no">390</span><span id="line-390">                setAI(true, gameState.getAIDifficulty(), gameState.isAIWhite());</span>
+<span class="source-line-no">391</span><span id="line-391">            } else {</span>
+<span class="source-line-no">392</span><span id="line-392">                setAI(false, 0, false);</span>
+<span class="source-line-no">393</span><span id="line-393">            }</span>
+<span class="source-line-no">394</span><span id="line-394">            </span>
+<span class="source-line-no">395</span><span id="line-395">            // Notifier les observateurs</span>
+<span class="source-line-no">396</span><span id="line-396">            setChanged();</span>
+<span class="source-line-no">397</span><span id="line-397">            notifyObservers();</span>
+<span class="source-line-no">398</span><span id="line-398">        }</span>
 <span class="source-line-no">399</span><span id="line-399">    }</span>
-<span class="source-line-no">400</span><span id="line-400">}</span>
+<span class="source-line-no">400</span><span id="line-400"></span>
+<span class="source-line-no">401</span><span id="line-401">    /**</span>
+<span class="source-line-no">402</span><span id="line-402">     * Crée une pièce.</span>
+<span class="source-line-no">403</span><span id="line-403">     * @param type Le type de pièce.</span>
+<span class="source-line-no">404</span><span id="line-404">     * @param isWhite La couleur de la pièce.</span>
+<span class="source-line-no">405</span><span id="line-405">     * @param targetCase La case de destination.</span>
+<span class="source-line-no">406</span><span id="line-406">     * @return La pièce créée.</span>
+<span class="source-line-no">407</span><span id="line-407">     */</span>
+<span class="source-line-no">408</span><span id="line-408">    private Piece createPiece(String type, boolean isWhite, Case targetCase) {</span>
+<span class="source-line-no">409</span><span id="line-409">        return switch (type) {</span>
+<span class="source-line-no">410</span><span id="line-410">            case "King" -&gt; new model.pieces.King(isWhite, targetCase);</span>
+<span class="source-line-no">411</span><span id="line-411">            case "Queen" -&gt; new model.pieces.Queen(isWhite, targetCase);</span>
+<span class="source-line-no">412</span><span id="line-412">            case "Rook" -&gt; new model.pieces.Rook(isWhite, targetCase);</span>
+<span class="source-line-no">413</span><span id="line-413">            case "Bishop" -&gt; new model.pieces.Bishop(isWhite, targetCase);</span>
+<span class="source-line-no">414</span><span id="line-414">            case "Knight" -&gt; new model.pieces.Knight(isWhite, targetCase);</span>
+<span class="source-line-no">415</span><span id="line-415">            case "Pawn" -&gt; new model.pieces.Pawn(isWhite, targetCase);</span>
+<span class="source-line-no">416</span><span id="line-416">            default -&gt; null;</span>
+<span class="source-line-no">417</span><span id="line-417">        };</span>
+<span class="source-line-no">418</span><span id="line-418">    }</span>
+<span class="source-line-no">419</span><span id="line-419">}</span>
 
 
 

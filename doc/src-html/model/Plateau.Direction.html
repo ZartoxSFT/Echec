@@ -293,254 +293,262 @@
 <span class="source-line-no">280</span><span id="line-280">    }</span>
 <span class="source-line-no">281</span><span id="line-281"></span>
 <span class="source-line-no">282</span><span id="line-282">    /**</span>
-<span class="source-line-no">283</span><span id="line-283">     * Récupère la cible pour la capture en passant.</span>
-<span class="source-line-no">284</span><span id="line-284">     * @return La cible pour la capture en passant.</span>
+<span class="source-line-no">283</span><span id="line-283">     * Définit la cible de prise en passant.</span>
+<span class="source-line-no">284</span><span id="line-284">     * @param piece La pièce cible pour la prise en passant.</span>
 <span class="source-line-no">285</span><span id="line-285">     */</span>
-<span class="source-line-no">286</span><span id="line-286">    public Piece getEnPassantTarget() {</span>
-<span class="source-line-no">287</span><span id="line-287">        return enPassantTarget;</span>
+<span class="source-line-no">286</span><span id="line-286">    public void setEnPassantTarget(Piece piece) {</span>
+<span class="source-line-no">287</span><span id="line-287">        this.enPassantTarget = piece;</span>
 <span class="source-line-no">288</span><span id="line-288">    }</span>
 <span class="source-line-no">289</span><span id="line-289"></span>
 <span class="source-line-no">290</span><span id="line-290">    /**</span>
-<span class="source-line-no">291</span><span id="line-291">     * Vérifie si le roi est en échec.</span>
-<span class="source-line-no">292</span><span id="line-292">     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.</span>
-<span class="source-line-no">293</span><span id="line-293">     * @return true si le roi est en échec, false sinon.</span>
-<span class="source-line-no">294</span><span id="line-294">     */</span>
-<span class="source-line-no">295</span><span id="line-295">    public boolean isKingInCheck(boolean whiteKing) {</span>
-<span class="source-line-no">296</span><span id="line-296">        if (isCheckingThreats) {</span>
-<span class="source-line-no">297</span><span id="line-297">            return false; // Évite la récursion infinie</span>
-<span class="source-line-no">298</span><span id="line-298">        }</span>
-<span class="source-line-no">299</span><span id="line-299">    </span>
-<span class="source-line-no">300</span><span id="line-300">        isCheckingThreats = true; // Marque le début de la vérification</span>
-<span class="source-line-no">301</span><span id="line-301">        try {</span>
-<span class="source-line-no">302</span><span id="line-302">            // 1. Trouver le roi</span>
-<span class="source-line-no">303</span><span id="line-303">            Piece king = null;</span>
-<span class="source-line-no">304</span><span id="line-304">            Point kingPosition = null;</span>
-<span class="source-line-no">305</span><span id="line-305">            for (Map.Entry&lt;Case, Point&gt; entry : caseMap.entrySet()) {</span>
-<span class="source-line-no">306</span><span id="line-306">                Case c = entry.getKey();</span>
-<span class="source-line-no">307</span><span id="line-307">                if (c.getPiece() != null &amp;&amp; c.getPiece() instanceof model.pieces.King &amp;&amp; c.getPiece().getColor() == whiteKing) {</span>
-<span class="source-line-no">308</span><span id="line-308">                    king = c.getPiece();</span>
-<span class="source-line-no">309</span><span id="line-309">                    kingPosition = entry.getValue();</span>
-<span class="source-line-no">310</span><span id="line-310">                    break;</span>
-<span class="source-line-no">311</span><span id="line-311">                }</span>
-<span class="source-line-no">312</span><span id="line-312">            }</span>
-<span class="source-line-no">313</span><span id="line-313">            if (king == null || kingPosition == null) return false; // Pas trouvé ? (impossible mais sécurité)</span>
-<span class="source-line-no">314</span><span id="line-314">    </span>
-<span class="source-line-no">315</span><span id="line-315">            // 2. Chercher si une pièce ennemie peut l'atteindre</span>
-<span class="source-line-no">316</span><span id="line-316">            for (Map.Entry&lt;Case, Point&gt; entry : caseMap.entrySet()) {</span>
-<span class="source-line-no">317</span><span id="line-317">                Case c = entry.getKey();</span>
-<span class="source-line-no">318</span><span id="line-318">                Piece enemy = c.getPiece();</span>
-<span class="source-line-no">319</span><span id="line-319">                if (enemy != null &amp;&amp; enemy.getColor() != whiteKing) {</span>
-<span class="source-line-no">320</span><span id="line-320">                    List&lt;int[]&gt; moves = enemy.getValidMoves(this);</span>
-<span class="source-line-no">321</span><span id="line-321">                    for (int[] move : moves) {</span>
-<span class="source-line-no">322</span><span id="line-322">                        if (move[0] == kingPosition.x &amp;&amp; move[1] == kingPosition.y) {</span>
-<span class="source-line-no">323</span><span id="line-323">                            return true;</span>
-<span class="source-line-no">324</span><span id="line-324">                        }</span>
-<span class="source-line-no">325</span><span id="line-325">                    }</span>
-<span class="source-line-no">326</span><span id="line-326">                }</span>
-<span class="source-line-no">327</span><span id="line-327">            }</span>
-<span class="source-line-no">328</span><span id="line-328">        } finally {</span>
-<span class="source-line-no">329</span><span id="line-329">            isCheckingThreats = false; // Réinitialise le drapeau</span>
-<span class="source-line-no">330</span><span id="line-330">        }</span>
-<span class="source-line-no">331</span><span id="line-331">    </span>
-<span class="source-line-no">332</span><span id="line-332">        return false;</span>
-<span class="source-line-no">333</span><span id="line-333">    }</span>
-<span class="source-line-no">334</span><span id="line-334"></span>
-<span class="source-line-no">335</span><span id="line-335">    /**</span>
-<span class="source-line-no">336</span><span id="line-336">     * Vérifie si le roi est en échec et mat.</span>
-<span class="source-line-no">337</span><span id="line-337">     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.</span>
-<span class="source-line-no">338</span><span id="line-338">     * @return true si le roi est en échec et mat, false sinon.</span>
-<span class="source-line-no">339</span><span id="line-339">     */</span>
-<span class="source-line-no">340</span><span id="line-340">    public boolean isCheckMate(boolean whiteKing) {</span>
-<span class="source-line-no">341</span><span id="line-341">        for (Case c : caseMap.keySet()) {</span>
-<span class="source-line-no">342</span><span id="line-342">            Piece p = c.getPiece();</span>
-<span class="source-line-no">343</span><span id="line-343">            if (p != null &amp;&amp; p.getColor() == whiteKing) {</span>
-<span class="source-line-no">344</span><span id="line-344">                List&lt;int[]&gt; moves = p.getValidMoves(this);</span>
-<span class="source-line-no">345</span><span id="line-345">                for (int[] move : moves) {</span>
-<span class="source-line-no">346</span><span id="line-346">                    // Simuler le mouvement</span>
-<span class="source-line-no">347</span><span id="line-347">                    Case oldCase = p.getCurrentCase();</span>
-<span class="source-line-no">348</span><span id="line-348">                    Case newCase = getCase(move[0], move[1]);</span>
-<span class="source-line-no">349</span><span id="line-349">                    if (newCase == null) continue; // Case invalide</span>
-<span class="source-line-no">350</span><span id="line-350"></span>
-<span class="source-line-no">351</span><span id="line-351">                    Piece backup = newCase.getPiece();</span>
-<span class="source-line-no">352</span><span id="line-352">    </span>
-<span class="source-line-no">353</span><span id="line-353">                    oldCase.setPiece(null);</span>
-<span class="source-line-no">354</span><span id="line-354">                    newCase.setPiece(p);</span>
-<span class="source-line-no">355</span><span id="line-355">                    p.setCurrentCase(newCase);</span>
-<span class="source-line-no">356</span><span id="line-356"></span>
-<span class="source-line-no">357</span><span id="line-357">                    boolean kingStillInCheck = isKingInCheck(whiteKing);</span>
-<span class="source-line-no">358</span><span id="line-358">    </span>
-<span class="source-line-no">359</span><span id="line-359">                    // Undo le mouvement</span>
-<span class="source-line-no">360</span><span id="line-360">                    oldCase.setPiece(p);</span>
-<span class="source-line-no">361</span><span id="line-361">                    newCase.setPiece(backup);</span>
-<span class="source-line-no">362</span><span id="line-362">                    p.setCurrentCase(oldCase);</span>
-<span class="source-line-no">363</span><span id="line-363">    </span>
-<span class="source-line-no">364</span><span id="line-364">                    if (!kingStillInCheck) {</span>
-<span class="source-line-no">365</span><span id="line-365">                        return false; // Trouvé un moyen de se sauver</span>
-<span class="source-line-no">366</span><span id="line-366">                    }</span>
-<span class="source-line-no">367</span><span id="line-367">                }</span>
-<span class="source-line-no">368</span><span id="line-368">            }</span>
-<span class="source-line-no">369</span><span id="line-369">        }</span>
-<span class="source-line-no">370</span><span id="line-370">        return true;</span>
-<span class="source-line-no">371</span><span id="line-371">    }  </span>
-<span class="source-line-no">372</span><span id="line-372"></span>
-<span class="source-line-no">373</span><span id="line-373">    /**</span>
-<span class="source-line-no">374</span><span id="line-374">     * Vérifie si une case est menacée.</span>
-<span class="source-line-no">375</span><span id="line-375">     * @param targetCase La case à vérifier.</span>
-<span class="source-line-no">376</span><span id="line-376">     * @param byWhite true si la case est menacée par un joueur blanc, false si c'est un joueur noir.</span>
-<span class="source-line-no">377</span><span id="line-377">     * @return true si la case est menacée, false sinon.</span>
-<span class="source-line-no">378</span><span id="line-378">     */</span>
-<span class="source-line-no">379</span><span id="line-379">    public boolean isCaseThreatened(Case targetCase, boolean byWhite) {</span>
-<span class="source-line-no">380</span><span id="line-380">        if (isCheckingThreats) {</span>
-<span class="source-line-no">381</span><span id="line-381">            return false; // Évite la récursion infinie</span>
-<span class="source-line-no">382</span><span id="line-382">        }</span>
-<span class="source-line-no">383</span><span id="line-383">    </span>
-<span class="source-line-no">384</span><span id="line-384">        isCheckingThreats = true; // Marque le début de la vérification</span>
-<span class="source-line-no">385</span><span id="line-385">        try {</span>
-<span class="source-line-no">386</span><span id="line-386">            for (Piece piece : pieces) {</span>
-<span class="source-line-no">387</span><span id="line-387">                if (piece.getColor() == byWhite) {</span>
-<span class="source-line-no">388</span><span id="line-388">                    List&lt;int[]&gt; moves = piece.getValidMoves(this);</span>
-<span class="source-line-no">389</span><span id="line-389">                    for (int[] move : moves) {</span>
-<span class="source-line-no">390</span><span id="line-390">                        if (move[0] == targetCase.getX() &amp;&amp; move[1] == targetCase.getY()) {</span>
-<span class="source-line-no">391</span><span id="line-391">                            return true;</span>
-<span class="source-line-no">392</span><span id="line-392">                        }</span>
-<span class="source-line-no">393</span><span id="line-393">                    }</span>
-<span class="source-line-no">394</span><span id="line-394">                }</span>
-<span class="source-line-no">395</span><span id="line-395">            }</span>
-<span class="source-line-no">396</span><span id="line-396">        } finally {</span>
-<span class="source-line-no">397</span><span id="line-397">            isCheckingThreats = false; // Réinitialise le drapeau</span>
-<span class="source-line-no">398</span><span id="line-398">        }</span>
-<span class="source-line-no">399</span><span id="line-399">        return false;</span>
-<span class="source-line-no">400</span><span id="line-400">    }</span>
-<span class="source-line-no">401</span><span id="line-401"></span>
-<span class="source-line-no">402</span><span id="line-402">    /**</span>
-<span class="source-line-no">403</span><span id="line-403">     * Filtre les mouvements valides pour une pièce.</span>
-<span class="source-line-no">404</span><span id="line-404">     * @param piece La pièce à filtrer.</span>
-<span class="source-line-no">405</span><span id="line-405">     * @return La liste des mouvements valides.</span>
-<span class="source-line-no">406</span><span id="line-406">     */</span>
-<span class="source-line-no">407</span><span id="line-407">    public List&lt;int[]&gt; filterValidMoves(Piece piece) {</span>
-<span class="source-line-no">408</span><span id="line-408">        List&lt;int[]&gt; validMoves = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">409</span><span id="line-409">        List&lt;int[]&gt; possibleMoves = piece.getValidMoves(this);</span>
-<span class="source-line-no">410</span><span id="line-410">    </span>
-<span class="source-line-no">411</span><span id="line-411">        for (int[] move : possibleMoves) {</span>
-<span class="source-line-no">412</span><span id="line-412">            Case originalCase = piece.getCurrentCase();</span>
-<span class="source-line-no">413</span><span id="line-413">            Case targetCase = getCase(move[0], move[1]);</span>
-<span class="source-line-no">414</span><span id="line-414">            if (targetCase == null) continue;</span>
-<span class="source-line-no">415</span><span id="line-415">    </span>
-<span class="source-line-no">416</span><span id="line-416">            Piece capturedPiece = targetCase.getPiece();</span>
-<span class="source-line-no">417</span><span id="line-417">    </span>
-<span class="source-line-no">418</span><span id="line-418">            // Simuler le mouvement</span>
-<span class="source-line-no">419</span><span id="line-419">            originalCase.setPiece(null);</span>
-<span class="source-line-no">420</span><span id="line-420">            targetCase.setPiece(piece);</span>
-<span class="source-line-no">421</span><span id="line-421">            piece.setCurrentCase(targetCase);</span>
-<span class="source-line-no">422</span><span id="line-422">    </span>
-<span class="source-line-no">423</span><span id="line-423">            // Vérifier si le roi reste en sécurité</span>
-<span class="source-line-no">424</span><span id="line-424">            boolean kingInCheck = isKingInCheck(piece.getColor());</span>
+<span class="source-line-no">291</span><span id="line-291">     * Récupère la cible de prise en passant.</span>
+<span class="source-line-no">292</span><span id="line-292">     * @return La pièce cible pour la prise en passant.</span>
+<span class="source-line-no">293</span><span id="line-293">     */</span>
+<span class="source-line-no">294</span><span id="line-294">    public Piece getEnPassantTarget() {</span>
+<span class="source-line-no">295</span><span id="line-295">        return enPassantTarget;</span>
+<span class="source-line-no">296</span><span id="line-296">    }</span>
+<span class="source-line-no">297</span><span id="line-297"></span>
+<span class="source-line-no">298</span><span id="line-298">    /**</span>
+<span class="source-line-no">299</span><span id="line-299">     * Vérifie si le roi est en échec.</span>
+<span class="source-line-no">300</span><span id="line-300">     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.</span>
+<span class="source-line-no">301</span><span id="line-301">     * @return true si le roi est en échec, false sinon.</span>
+<span class="source-line-no">302</span><span id="line-302">     */</span>
+<span class="source-line-no">303</span><span id="line-303">    public boolean isKingInCheck(boolean whiteKing) {</span>
+<span class="source-line-no">304</span><span id="line-304">        if (isCheckingThreats) {</span>
+<span class="source-line-no">305</span><span id="line-305">            return false; // Évite la récursion infinie</span>
+<span class="source-line-no">306</span><span id="line-306">        }</span>
+<span class="source-line-no">307</span><span id="line-307">    </span>
+<span class="source-line-no">308</span><span id="line-308">        isCheckingThreats = true; // Marque le début de la vérification</span>
+<span class="source-line-no">309</span><span id="line-309">        try {</span>
+<span class="source-line-no">310</span><span id="line-310">            // 1. Trouver le roi</span>
+<span class="source-line-no">311</span><span id="line-311">            Piece king = null;</span>
+<span class="source-line-no">312</span><span id="line-312">            Point kingPosition = null;</span>
+<span class="source-line-no">313</span><span id="line-313">            for (Map.Entry&lt;Case, Point&gt; entry : caseMap.entrySet()) {</span>
+<span class="source-line-no">314</span><span id="line-314">                Case c = entry.getKey();</span>
+<span class="source-line-no">315</span><span id="line-315">                if (c.getPiece() != null &amp;&amp; c.getPiece() instanceof model.pieces.King &amp;&amp; c.getPiece().getColor() == whiteKing) {</span>
+<span class="source-line-no">316</span><span id="line-316">                    king = c.getPiece();</span>
+<span class="source-line-no">317</span><span id="line-317">                    kingPosition = entry.getValue();</span>
+<span class="source-line-no">318</span><span id="line-318">                    break;</span>
+<span class="source-line-no">319</span><span id="line-319">                }</span>
+<span class="source-line-no">320</span><span id="line-320">            }</span>
+<span class="source-line-no">321</span><span id="line-321">            if (king == null || kingPosition == null) return false; // Pas trouvé ? (impossible mais sécurité)</span>
+<span class="source-line-no">322</span><span id="line-322">    </span>
+<span class="source-line-no">323</span><span id="line-323">            // 2. Chercher si une pièce ennemie peut l'atteindre</span>
+<span class="source-line-no">324</span><span id="line-324">            for (Map.Entry&lt;Case, Point&gt; entry : caseMap.entrySet()) {</span>
+<span class="source-line-no">325</span><span id="line-325">                Case c = entry.getKey();</span>
+<span class="source-line-no">326</span><span id="line-326">                Piece enemy = c.getPiece();</span>
+<span class="source-line-no">327</span><span id="line-327">                if (enemy != null &amp;&amp; enemy.getColor() != whiteKing) {</span>
+<span class="source-line-no">328</span><span id="line-328">                    List&lt;int[]&gt; moves = enemy.getValidMoves(this);</span>
+<span class="source-line-no">329</span><span id="line-329">                    for (int[] move : moves) {</span>
+<span class="source-line-no">330</span><span id="line-330">                        if (move[0] == kingPosition.x &amp;&amp; move[1] == kingPosition.y) {</span>
+<span class="source-line-no">331</span><span id="line-331">                            return true;</span>
+<span class="source-line-no">332</span><span id="line-332">                        }</span>
+<span class="source-line-no">333</span><span id="line-333">                    }</span>
+<span class="source-line-no">334</span><span id="line-334">                }</span>
+<span class="source-line-no">335</span><span id="line-335">            }</span>
+<span class="source-line-no">336</span><span id="line-336">        } finally {</span>
+<span class="source-line-no">337</span><span id="line-337">            isCheckingThreats = false; // Réinitialise le drapeau</span>
+<span class="source-line-no">338</span><span id="line-338">        }</span>
+<span class="source-line-no">339</span><span id="line-339">    </span>
+<span class="source-line-no">340</span><span id="line-340">        return false;</span>
+<span class="source-line-no">341</span><span id="line-341">    }</span>
+<span class="source-line-no">342</span><span id="line-342"></span>
+<span class="source-line-no">343</span><span id="line-343">    /**</span>
+<span class="source-line-no">344</span><span id="line-344">     * Vérifie si le roi est en échec et mat.</span>
+<span class="source-line-no">345</span><span id="line-345">     * @param whiteKing true si c'est le roi blanc, false si c'est le roi noir.</span>
+<span class="source-line-no">346</span><span id="line-346">     * @return true si le roi est en échec et mat, false sinon.</span>
+<span class="source-line-no">347</span><span id="line-347">     */</span>
+<span class="source-line-no">348</span><span id="line-348">    public boolean isCheckMate(boolean whiteKing) {</span>
+<span class="source-line-no">349</span><span id="line-349">        for (Case c : caseMap.keySet()) {</span>
+<span class="source-line-no">350</span><span id="line-350">            Piece p = c.getPiece();</span>
+<span class="source-line-no">351</span><span id="line-351">            if (p != null &amp;&amp; p.getColor() == whiteKing) {</span>
+<span class="source-line-no">352</span><span id="line-352">                List&lt;int[]&gt; moves = p.getValidMoves(this);</span>
+<span class="source-line-no">353</span><span id="line-353">                for (int[] move : moves) {</span>
+<span class="source-line-no">354</span><span id="line-354">                    // Simuler le mouvement</span>
+<span class="source-line-no">355</span><span id="line-355">                    Case oldCase = p.getCurrentCase();</span>
+<span class="source-line-no">356</span><span id="line-356">                    Case newCase = getCase(move[0], move[1]);</span>
+<span class="source-line-no">357</span><span id="line-357">                    if (newCase == null) continue; // Case invalide</span>
+<span class="source-line-no">358</span><span id="line-358"></span>
+<span class="source-line-no">359</span><span id="line-359">                    Piece backup = newCase.getPiece();</span>
+<span class="source-line-no">360</span><span id="line-360">    </span>
+<span class="source-line-no">361</span><span id="line-361">                    oldCase.setPiece(null);</span>
+<span class="source-line-no">362</span><span id="line-362">                    newCase.setPiece(p);</span>
+<span class="source-line-no">363</span><span id="line-363">                    p.setCurrentCase(newCase);</span>
+<span class="source-line-no">364</span><span id="line-364"></span>
+<span class="source-line-no">365</span><span id="line-365">                    boolean kingStillInCheck = isKingInCheck(whiteKing);</span>
+<span class="source-line-no">366</span><span id="line-366">    </span>
+<span class="source-line-no">367</span><span id="line-367">                    // Undo le mouvement</span>
+<span class="source-line-no">368</span><span id="line-368">                    oldCase.setPiece(p);</span>
+<span class="source-line-no">369</span><span id="line-369">                    newCase.setPiece(backup);</span>
+<span class="source-line-no">370</span><span id="line-370">                    p.setCurrentCase(oldCase);</span>
+<span class="source-line-no">371</span><span id="line-371">    </span>
+<span class="source-line-no">372</span><span id="line-372">                    if (!kingStillInCheck) {</span>
+<span class="source-line-no">373</span><span id="line-373">                        return false; // Trouvé un moyen de se sauver</span>
+<span class="source-line-no">374</span><span id="line-374">                    }</span>
+<span class="source-line-no">375</span><span id="line-375">                }</span>
+<span class="source-line-no">376</span><span id="line-376">            }</span>
+<span class="source-line-no">377</span><span id="line-377">        }</span>
+<span class="source-line-no">378</span><span id="line-378">        return true;</span>
+<span class="source-line-no">379</span><span id="line-379">    }  </span>
+<span class="source-line-no">380</span><span id="line-380"></span>
+<span class="source-line-no">381</span><span id="line-381">    /**</span>
+<span class="source-line-no">382</span><span id="line-382">     * Vérifie si une case est menacée.</span>
+<span class="source-line-no">383</span><span id="line-383">     * @param targetCase La case à vérifier.</span>
+<span class="source-line-no">384</span><span id="line-384">     * @param byWhite true si la case est menacée par un joueur blanc, false si c'est un joueur noir.</span>
+<span class="source-line-no">385</span><span id="line-385">     * @return true si la case est menacée, false sinon.</span>
+<span class="source-line-no">386</span><span id="line-386">     */</span>
+<span class="source-line-no">387</span><span id="line-387">    public boolean isCaseThreatened(Case targetCase, boolean byWhite) {</span>
+<span class="source-line-no">388</span><span id="line-388">        if (isCheckingThreats) {</span>
+<span class="source-line-no">389</span><span id="line-389">            return false; // Évite la récursion infinie</span>
+<span class="source-line-no">390</span><span id="line-390">        }</span>
+<span class="source-line-no">391</span><span id="line-391">    </span>
+<span class="source-line-no">392</span><span id="line-392">        isCheckingThreats = true; // Marque le début de la vérification</span>
+<span class="source-line-no">393</span><span id="line-393">        try {</span>
+<span class="source-line-no">394</span><span id="line-394">            for (Piece piece : pieces) {</span>
+<span class="source-line-no">395</span><span id="line-395">                if (piece.getColor() == byWhite) {</span>
+<span class="source-line-no">396</span><span id="line-396">                    List&lt;int[]&gt; moves = piece.getValidMoves(this);</span>
+<span class="source-line-no">397</span><span id="line-397">                    for (int[] move : moves) {</span>
+<span class="source-line-no">398</span><span id="line-398">                        if (move[0] == targetCase.getX() &amp;&amp; move[1] == targetCase.getY()) {</span>
+<span class="source-line-no">399</span><span id="line-399">                            return true;</span>
+<span class="source-line-no">400</span><span id="line-400">                        }</span>
+<span class="source-line-no">401</span><span id="line-401">                    }</span>
+<span class="source-line-no">402</span><span id="line-402">                }</span>
+<span class="source-line-no">403</span><span id="line-403">            }</span>
+<span class="source-line-no">404</span><span id="line-404">        } finally {</span>
+<span class="source-line-no">405</span><span id="line-405">            isCheckingThreats = false; // Réinitialise le drapeau</span>
+<span class="source-line-no">406</span><span id="line-406">        }</span>
+<span class="source-line-no">407</span><span id="line-407">        return false;</span>
+<span class="source-line-no">408</span><span id="line-408">    }</span>
+<span class="source-line-no">409</span><span id="line-409"></span>
+<span class="source-line-no">410</span><span id="line-410">    /**</span>
+<span class="source-line-no">411</span><span id="line-411">     * Filtre les mouvements valides pour une pièce.</span>
+<span class="source-line-no">412</span><span id="line-412">     * @param piece La pièce à filtrer.</span>
+<span class="source-line-no">413</span><span id="line-413">     * @return La liste des mouvements valides.</span>
+<span class="source-line-no">414</span><span id="line-414">     */</span>
+<span class="source-line-no">415</span><span id="line-415">    public List&lt;int[]&gt; filterValidMoves(Piece piece) {</span>
+<span class="source-line-no">416</span><span id="line-416">        List&lt;int[]&gt; validMoves = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">417</span><span id="line-417">        List&lt;int[]&gt; possibleMoves = piece.getValidMoves(this);</span>
+<span class="source-line-no">418</span><span id="line-418">    </span>
+<span class="source-line-no">419</span><span id="line-419">        for (int[] move : possibleMoves) {</span>
+<span class="source-line-no">420</span><span id="line-420">            Case originalCase = piece.getCurrentCase();</span>
+<span class="source-line-no">421</span><span id="line-421">            Case targetCase = getCase(move[0], move[1]);</span>
+<span class="source-line-no">422</span><span id="line-422">            if (targetCase == null) continue;</span>
+<span class="source-line-no">423</span><span id="line-423">    </span>
+<span class="source-line-no">424</span><span id="line-424">            Piece capturedPiece = targetCase.getPiece();</span>
 <span class="source-line-no">425</span><span id="line-425">    </span>
-<span class="source-line-no">426</span><span id="line-426">            // Annuler la simulation</span>
-<span class="source-line-no">427</span><span id="line-427">            targetCase.setPiece(capturedPiece);</span>
-<span class="source-line-no">428</span><span id="line-428">            originalCase.setPiece(piece);</span>
-<span class="source-line-no">429</span><span id="line-429">            piece.setCurrentCase(originalCase);</span>
+<span class="source-line-no">426</span><span id="line-426">            // Simuler le mouvement</span>
+<span class="source-line-no">427</span><span id="line-427">            originalCase.setPiece(null);</span>
+<span class="source-line-no">428</span><span id="line-428">            targetCase.setPiece(piece);</span>
+<span class="source-line-no">429</span><span id="line-429">            piece.setCurrentCase(targetCase);</span>
 <span class="source-line-no">430</span><span id="line-430">    </span>
-<span class="source-line-no">431</span><span id="line-431">            // Ajouter le mouvement uniquement si le roi n'est pas en échec</span>
-<span class="source-line-no">432</span><span id="line-432">            if (!kingInCheck) {</span>
-<span class="source-line-no">433</span><span id="line-433">                validMoves.add(move);</span>
-<span class="source-line-no">434</span><span id="line-434">            }</span>
-<span class="source-line-no">435</span><span id="line-435">        }</span>
-<span class="source-line-no">436</span><span id="line-436">    </span>
-<span class="source-line-no">437</span><span id="line-437">        return validMoves;</span>
-<span class="source-line-no">438</span><span id="line-438">    }</span>
-<span class="source-line-no">439</span><span id="line-439"></span>
-<span class="source-line-no">440</span><span id="line-440">    /**</span>
-<span class="source-line-no">441</span><span id="line-441">     * Vérifie si le jeu est un pat.</span>
-<span class="source-line-no">442</span><span id="line-442">     * @param whitePlayer true si c'est le joueur blanc, false si c'est le joueur noir.</span>
-<span class="source-line-no">443</span><span id="line-443">     * @return true si le jeu est un pat, false sinon.</span>
-<span class="source-line-no">444</span><span id="line-444">     */</span>
-<span class="source-line-no">445</span><span id="line-445">    public boolean isStalemate(boolean whitePlayer) {</span>
-<span class="source-line-no">446</span><span id="line-446">        // Si le roi est en échec, ce n'est pas un pat</span>
-<span class="source-line-no">447</span><span id="line-447">        if (isKingInCheck(whitePlayer)) {</span>
-<span class="source-line-no">448</span><span id="line-448">            return false;</span>
-<span class="source-line-no">449</span><span id="line-449">        }</span>
-<span class="source-line-no">450</span><span id="line-450"></span>
-<span class="source-line-no">451</span><span id="line-451">        // Vérifier si le joueur a des coups légaux</span>
-<span class="source-line-no">452</span><span id="line-452">        for (Piece piece : pieces) {</span>
-<span class="source-line-no">453</span><span id="line-453">            if (piece.getColor() == whitePlayer) {</span>
-<span class="source-line-no">454</span><span id="line-454">                List&lt;int[]&gt; validMoves = filterValidMoves(piece);</span>
-<span class="source-line-no">455</span><span id="line-455">                if (!validMoves.isEmpty()) {</span>
-<span class="source-line-no">456</span><span id="line-456">                    return false;</span>
-<span class="source-line-no">457</span><span id="line-457">                }</span>
-<span class="source-line-no">458</span><span id="line-458">            }</span>
-<span class="source-line-no">459</span><span id="line-459">        }</span>
-<span class="source-line-no">460</span><span id="line-460"></span>
-<span class="source-line-no">461</span><span id="line-461">        // Si aucun coup légal n'est trouvé et le roi n'est pas en échec, c'est un pat</span>
-<span class="source-line-no">462</span><span id="line-462">        return true;</span>
-<span class="source-line-no">463</span><span id="line-463">    }</span>
-<span class="source-line-no">464</span><span id="line-464"></span>
-<span class="source-line-no">465</span><span id="line-465">    /**</span>
-<span class="source-line-no">466</span><span id="line-466">     * Vérifie si le matériel est insuffisant.</span>
-<span class="source-line-no">467</span><span id="line-467">     * @return true si le matériel est insuffisant, false sinon.</span>
-<span class="source-line-no">468</span><span id="line-468">     */</span>
-<span class="source-line-no">469</span><span id="line-469">    public boolean isInsufficientMaterial() {</span>
-<span class="source-line-no">470</span><span id="line-470">        int whiteBishops = 0, blackBishops = 0;</span>
-<span class="source-line-no">471</span><span id="line-471">        int whiteKnights = 0, blackKnights = 0;</span>
-<span class="source-line-no">472</span><span id="line-472">        boolean hasWhiteLightSquareBishop = false, hasWhiteDarkSquareBishop = false;</span>
-<span class="source-line-no">473</span><span id="line-473">        boolean hasBlackLightSquareBishop = false, hasBlackDarkSquareBishop = false;</span>
-<span class="source-line-no">474</span><span id="line-474"></span>
-<span class="source-line-no">475</span><span id="line-475">        for (Piece piece : pieces) {</span>
-<span class="source-line-no">476</span><span id="line-476">            if (piece instanceof model.pieces.Pawn ||</span>
-<span class="source-line-no">477</span><span id="line-477">                piece instanceof model.pieces.Rook ||</span>
-<span class="source-line-no">478</span><span id="line-478">                piece instanceof model.pieces.Queen) {</span>
-<span class="source-line-no">479</span><span id="line-479">                return false; // Ces pièces peuvent toujours mater</span>
-<span class="source-line-no">480</span><span id="line-480">            }</span>
-<span class="source-line-no">481</span><span id="line-481"></span>
-<span class="source-line-no">482</span><span id="line-482">            if (piece instanceof model.pieces.Bishop) {</span>
-<span class="source-line-no">483</span><span id="line-483">                if (piece.getColor()) {</span>
-<span class="source-line-no">484</span><span id="line-484">                    whiteBishops++;</span>
-<span class="source-line-no">485</span><span id="line-485">                    // Vérifier la couleur de la case du fou</span>
-<span class="source-line-no">486</span><span id="line-486">                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;</span>
-<span class="source-line-no">487</span><span id="line-487">                    if (isLightSquare) hasWhiteLightSquareBishop = true;</span>
-<span class="source-line-no">488</span><span id="line-488">                    else hasWhiteDarkSquareBishop = true;</span>
-<span class="source-line-no">489</span><span id="line-489">                } else {</span>
-<span class="source-line-no">490</span><span id="line-490">                    blackBishops++;</span>
-<span class="source-line-no">491</span><span id="line-491">                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;</span>
-<span class="source-line-no">492</span><span id="line-492">                    if (isLightSquare) hasBlackLightSquareBishop = true;</span>
-<span class="source-line-no">493</span><span id="line-493">                    else hasBlackDarkSquareBishop = true;</span>
-<span class="source-line-no">494</span><span id="line-494">                }</span>
-<span class="source-line-no">495</span><span id="line-495">            }</span>
-<span class="source-line-no">496</span><span id="line-496"></span>
-<span class="source-line-no">497</span><span id="line-497">            if (piece instanceof model.pieces.Knight) {</span>
-<span class="source-line-no">498</span><span id="line-498">                if (piece.getColor()) whiteKnights++;</span>
-<span class="source-line-no">499</span><span id="line-499">                else blackKnights++;</span>
-<span class="source-line-no">500</span><span id="line-500">            }</span>
-<span class="source-line-no">501</span><span id="line-501">        }</span>
-<span class="source-line-no">502</span><span id="line-502"></span>
-<span class="source-line-no">503</span><span id="line-503">        // Roi contre Roi</span>
-<span class="source-line-no">504</span><span id="line-504">        if (whiteBishops == 0 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
-<span class="source-line-no">505</span><span id="line-505">            return true;</span>
-<span class="source-line-no">506</span><span id="line-506">        }</span>
-<span class="source-line-no">507</span><span id="line-507"></span>
-<span class="source-line-no">508</span><span id="line-508">        // Roi et Fou contre Roi</span>
-<span class="source-line-no">509</span><span id="line-509">        if ((whiteBishops == 1 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) ||</span>
-<span class="source-line-no">510</span><span id="line-510">            (whiteBishops == 0 &amp;&amp; blackBishops == 1 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0)) {</span>
-<span class="source-line-no">511</span><span id="line-511">            return true;</span>
-<span class="source-line-no">512</span><span id="line-512">        }</span>
-<span class="source-line-no">513</span><span id="line-513"></span>
-<span class="source-line-no">514</span><span id="line-514">        // Roi et Cavalier contre Roi</span>
-<span class="source-line-no">515</span><span id="line-515">        if ((whiteKnights == 1 &amp;&amp; blackKnights == 0 &amp;&amp; whiteBishops == 0 &amp;&amp; blackBishops == 0) ||</span>
-<span class="source-line-no">516</span><span id="line-516">            (whiteKnights == 0 &amp;&amp; blackKnights == 1 &amp;&amp; whiteBishops == 0 &amp;&amp; blackBishops == 0)) {</span>
-<span class="source-line-no">517</span><span id="line-517">            return true;</span>
-<span class="source-line-no">518</span><span id="line-518">        }</span>
-<span class="source-line-no">519</span><span id="line-519"></span>
-<span class="source-line-no">520</span><span id="line-520">        // Roi et Fous de même couleur contre Roi</span>
-<span class="source-line-no">521</span><span id="line-521">        if (whiteBishops &gt; 0 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
-<span class="source-line-no">522</span><span id="line-522">            return !hasWhiteLightSquareBishop || !hasWhiteDarkSquareBishop;</span>
-<span class="source-line-no">523</span><span id="line-523">        }</span>
-<span class="source-line-no">524</span><span id="line-524">        if (blackBishops &gt; 0 &amp;&amp; whiteBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
-<span class="source-line-no">525</span><span id="line-525">            return !hasBlackLightSquareBishop || !hasBlackDarkSquareBishop;</span>
+<span class="source-line-no">431</span><span id="line-431">            // Vérifier si le roi reste en sécurité</span>
+<span class="source-line-no">432</span><span id="line-432">            boolean kingInCheck = isKingInCheck(piece.getColor());</span>
+<span class="source-line-no">433</span><span id="line-433">    </span>
+<span class="source-line-no">434</span><span id="line-434">            // Annuler la simulation</span>
+<span class="source-line-no">435</span><span id="line-435">            targetCase.setPiece(capturedPiece);</span>
+<span class="source-line-no">436</span><span id="line-436">            originalCase.setPiece(piece);</span>
+<span class="source-line-no">437</span><span id="line-437">            piece.setCurrentCase(originalCase);</span>
+<span class="source-line-no">438</span><span id="line-438">    </span>
+<span class="source-line-no">439</span><span id="line-439">            // Ajouter le mouvement uniquement si le roi n'est pas en échec</span>
+<span class="source-line-no">440</span><span id="line-440">            if (!kingInCheck) {</span>
+<span class="source-line-no">441</span><span id="line-441">                validMoves.add(move);</span>
+<span class="source-line-no">442</span><span id="line-442">            }</span>
+<span class="source-line-no">443</span><span id="line-443">        }</span>
+<span class="source-line-no">444</span><span id="line-444">    </span>
+<span class="source-line-no">445</span><span id="line-445">        return validMoves;</span>
+<span class="source-line-no">446</span><span id="line-446">    }</span>
+<span class="source-line-no">447</span><span id="line-447"></span>
+<span class="source-line-no">448</span><span id="line-448">    /**</span>
+<span class="source-line-no">449</span><span id="line-449">     * Vérifie si le jeu est un pat.</span>
+<span class="source-line-no">450</span><span id="line-450">     * @param whitePlayer true si c'est le joueur blanc, false si c'est le joueur noir.</span>
+<span class="source-line-no">451</span><span id="line-451">     * @return true si le jeu est un pat, false sinon.</span>
+<span class="source-line-no">452</span><span id="line-452">     */</span>
+<span class="source-line-no">453</span><span id="line-453">    public boolean isStalemate(boolean whitePlayer) {</span>
+<span class="source-line-no">454</span><span id="line-454">        // Si le roi est en échec, ce n'est pas un pat</span>
+<span class="source-line-no">455</span><span id="line-455">        if (isKingInCheck(whitePlayer)) {</span>
+<span class="source-line-no">456</span><span id="line-456">            return false;</span>
+<span class="source-line-no">457</span><span id="line-457">        }</span>
+<span class="source-line-no">458</span><span id="line-458"></span>
+<span class="source-line-no">459</span><span id="line-459">        // Vérifier si le joueur a des coups légaux</span>
+<span class="source-line-no">460</span><span id="line-460">        for (Piece piece : pieces) {</span>
+<span class="source-line-no">461</span><span id="line-461">            if (piece.getColor() == whitePlayer) {</span>
+<span class="source-line-no">462</span><span id="line-462">                List&lt;int[]&gt; validMoves = filterValidMoves(piece);</span>
+<span class="source-line-no">463</span><span id="line-463">                if (!validMoves.isEmpty()) {</span>
+<span class="source-line-no">464</span><span id="line-464">                    return false;</span>
+<span class="source-line-no">465</span><span id="line-465">                }</span>
+<span class="source-line-no">466</span><span id="line-466">            }</span>
+<span class="source-line-no">467</span><span id="line-467">        }</span>
+<span class="source-line-no">468</span><span id="line-468"></span>
+<span class="source-line-no">469</span><span id="line-469">        // Si aucun coup légal n'est trouvé et le roi n'est pas en échec, c'est un pat</span>
+<span class="source-line-no">470</span><span id="line-470">        return true;</span>
+<span class="source-line-no">471</span><span id="line-471">    }</span>
+<span class="source-line-no">472</span><span id="line-472"></span>
+<span class="source-line-no">473</span><span id="line-473">    /**</span>
+<span class="source-line-no">474</span><span id="line-474">     * Vérifie si le matériel est insuffisant.</span>
+<span class="source-line-no">475</span><span id="line-475">     * @return true si le matériel est insuffisant, false sinon.</span>
+<span class="source-line-no">476</span><span id="line-476">     */</span>
+<span class="source-line-no">477</span><span id="line-477">    public boolean isInsufficientMaterial() {</span>
+<span class="source-line-no">478</span><span id="line-478">        int whiteBishops = 0, blackBishops = 0;</span>
+<span class="source-line-no">479</span><span id="line-479">        int whiteKnights = 0, blackKnights = 0;</span>
+<span class="source-line-no">480</span><span id="line-480">        boolean hasWhiteLightSquareBishop = false, hasWhiteDarkSquareBishop = false;</span>
+<span class="source-line-no">481</span><span id="line-481">        boolean hasBlackLightSquareBishop = false, hasBlackDarkSquareBishop = false;</span>
+<span class="source-line-no">482</span><span id="line-482"></span>
+<span class="source-line-no">483</span><span id="line-483">        for (Piece piece : pieces) {</span>
+<span class="source-line-no">484</span><span id="line-484">            if (piece instanceof model.pieces.Pawn ||</span>
+<span class="source-line-no">485</span><span id="line-485">                piece instanceof model.pieces.Rook ||</span>
+<span class="source-line-no">486</span><span id="line-486">                piece instanceof model.pieces.Queen) {</span>
+<span class="source-line-no">487</span><span id="line-487">                return false; // Ces pièces peuvent toujours mater</span>
+<span class="source-line-no">488</span><span id="line-488">            }</span>
+<span class="source-line-no">489</span><span id="line-489"></span>
+<span class="source-line-no">490</span><span id="line-490">            if (piece instanceof model.pieces.Bishop) {</span>
+<span class="source-line-no">491</span><span id="line-491">                if (piece.getColor()) {</span>
+<span class="source-line-no">492</span><span id="line-492">                    whiteBishops++;</span>
+<span class="source-line-no">493</span><span id="line-493">                    // Vérifier la couleur de la case du fou</span>
+<span class="source-line-no">494</span><span id="line-494">                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;</span>
+<span class="source-line-no">495</span><span id="line-495">                    if (isLightSquare) hasWhiteLightSquareBishop = true;</span>
+<span class="source-line-no">496</span><span id="line-496">                    else hasWhiteDarkSquareBishop = true;</span>
+<span class="source-line-no">497</span><span id="line-497">                } else {</span>
+<span class="source-line-no">498</span><span id="line-498">                    blackBishops++;</span>
+<span class="source-line-no">499</span><span id="line-499">                    boolean isLightSquare = (piece.getCurrentCase().getX() + piece.getCurrentCase().getY()) % 2 == 0;</span>
+<span class="source-line-no">500</span><span id="line-500">                    if (isLightSquare) hasBlackLightSquareBishop = true;</span>
+<span class="source-line-no">501</span><span id="line-501">                    else hasBlackDarkSquareBishop = true;</span>
+<span class="source-line-no">502</span><span id="line-502">                }</span>
+<span class="source-line-no">503</span><span id="line-503">            }</span>
+<span class="source-line-no">504</span><span id="line-504"></span>
+<span class="source-line-no">505</span><span id="line-505">            if (piece instanceof model.pieces.Knight) {</span>
+<span class="source-line-no">506</span><span id="line-506">                if (piece.getColor()) whiteKnights++;</span>
+<span class="source-line-no">507</span><span id="line-507">                else blackKnights++;</span>
+<span class="source-line-no">508</span><span id="line-508">            }</span>
+<span class="source-line-no">509</span><span id="line-509">        }</span>
+<span class="source-line-no">510</span><span id="line-510"></span>
+<span class="source-line-no">511</span><span id="line-511">        // Roi contre Roi</span>
+<span class="source-line-no">512</span><span id="line-512">        if (whiteBishops == 0 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
+<span class="source-line-no">513</span><span id="line-513">            return true;</span>
+<span class="source-line-no">514</span><span id="line-514">        }</span>
+<span class="source-line-no">515</span><span id="line-515"></span>
+<span class="source-line-no">516</span><span id="line-516">        // Roi et Fou contre Roi</span>
+<span class="source-line-no">517</span><span id="line-517">        if ((whiteBishops == 1 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) ||</span>
+<span class="source-line-no">518</span><span id="line-518">            (whiteBishops == 0 &amp;&amp; blackBishops == 1 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0)) {</span>
+<span class="source-line-no">519</span><span id="line-519">            return true;</span>
+<span class="source-line-no">520</span><span id="line-520">        }</span>
+<span class="source-line-no">521</span><span id="line-521"></span>
+<span class="source-line-no">522</span><span id="line-522">        // Roi et Cavalier contre Roi</span>
+<span class="source-line-no">523</span><span id="line-523">        if ((whiteKnights == 1 &amp;&amp; blackKnights == 0 &amp;&amp; whiteBishops == 0 &amp;&amp; blackBishops == 0) ||</span>
+<span class="source-line-no">524</span><span id="line-524">            (whiteKnights == 0 &amp;&amp; blackKnights == 1 &amp;&amp; whiteBishops == 0 &amp;&amp; blackBishops == 0)) {</span>
+<span class="source-line-no">525</span><span id="line-525">            return true;</span>
 <span class="source-line-no">526</span><span id="line-526">        }</span>
 <span class="source-line-no">527</span><span id="line-527"></span>
-<span class="source-line-no">528</span><span id="line-528">        return false;</span>
-<span class="source-line-no">529</span><span id="line-529">    }</span>
-<span class="source-line-no">530</span><span id="line-530">}</span>
+<span class="source-line-no">528</span><span id="line-528">        // Roi et Fous de même couleur contre Roi</span>
+<span class="source-line-no">529</span><span id="line-529">        if (whiteBishops &gt; 0 &amp;&amp; blackBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
+<span class="source-line-no">530</span><span id="line-530">            return !hasWhiteLightSquareBishop || !hasWhiteDarkSquareBishop;</span>
+<span class="source-line-no">531</span><span id="line-531">        }</span>
+<span class="source-line-no">532</span><span id="line-532">        if (blackBishops &gt; 0 &amp;&amp; whiteBishops == 0 &amp;&amp; whiteKnights == 0 &amp;&amp; blackKnights == 0) {</span>
+<span class="source-line-no">533</span><span id="line-533">            return !hasBlackLightSquareBishop || !hasBlackDarkSquareBishop;</span>
+<span class="source-line-no">534</span><span id="line-534">        }</span>
+<span class="source-line-no">535</span><span id="line-535"></span>
+<span class="source-line-no">536</span><span id="line-536">        return false;</span>
+<span class="source-line-no">537</span><span id="line-537">    }</span>
+<span class="source-line-no">538</span><span id="line-538">}</span>
 
 
 

@@ -21,53 +21,54 @@
 <span class="source-line-no">008</span><span id="line-8">import java.util.ArrayList;</span>
 <span class="source-line-no">009</span><span id="line-9"></span>
 <span class="source-line-no">010</span><span id="line-10">/**</span>
-<span class="source-line-no">011</span><span id="line-11"> * Classe décorant la stratégie de déplacement des pièces de type Cavalier.</span>
+<span class="source-line-no">011</span><span id="line-11"> * Classe décorant la stratégie de déplacement du cavalier.</span>
 <span class="source-line-no">012</span><span id="line-12"> * Ajoute les déplacements en "L" possibles à la stratégie décorée.</span>
-<span class="source-line-no">013</span><span id="line-13"> * Implémente la stratégie de déplacement MovementStrategy.</span>
+<span class="source-line-no">013</span><span id="line-13"> * Hérite de la classe Decorator.</span>
 <span class="source-line-no">014</span><span id="line-14"> */</span>
-<span class="source-line-no">015</span><span id="line-15">public class DecoKnight implements MovementStrategy {</span>
+<span class="source-line-no">015</span><span id="line-15">public class DecoKnight extends Decorator {</span>
 <span class="source-line-no">016</span><span id="line-16">    private MovementStrategy wrapped;</span>
 <span class="source-line-no">017</span><span id="line-17"></span>
 <span class="source-line-no">018</span><span id="line-18">    public DecoKnight(MovementStrategy wrapped) {</span>
-<span class="source-line-no">019</span><span id="line-19">        this.wrapped = wrapped;</span>
-<span class="source-line-no">020</span><span id="line-20">    }</span>
-<span class="source-line-no">021</span><span id="line-21"></span>
-<span class="source-line-no">022</span><span id="line-22">    /**</span>
-<span class="source-line-no">023</span><span id="line-23">     * Récupère les mouvements valides pour une pièce.</span>
-<span class="source-line-no">024</span><span id="line-24">     * @param piece La pièce à évaluer.</span>
-<span class="source-line-no">025</span><span id="line-25">     * @param currentCase La case actuelle de la pièce.</span>
-<span class="source-line-no">026</span><span id="line-26">     * @param plateau Le plateau de jeu.</span>
-<span class="source-line-no">027</span><span id="line-27">     * @return La liste des mouvements valides.</span>
-<span class="source-line-no">028</span><span id="line-28">     */</span>
-<span class="source-line-no">029</span><span id="line-29">    @Override</span>
-<span class="source-line-no">030</span><span id="line-30">    public List&lt;int[]&gt; getValidMoves(Piece piece, Case currentCase, Plateau plateau) {</span>
-<span class="source-line-no">031</span><span id="line-31">        List&lt;int[]&gt; moves = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">032</span><span id="line-32"></span>
-<span class="source-line-no">033</span><span id="line-33">        // Déplacements en "L" du cavalier (8 directions spécifiques)</span>
-<span class="source-line-no">034</span><span id="line-34">        int[][] knightMoves = {</span>
-<span class="source-line-no">035</span><span id="line-35">            {-2, 1}, {-1, 2}, {1, 2}, {2, 1},</span>
-<span class="source-line-no">036</span><span id="line-36">            {2, -1}, {1, -2}, {-1, -2}, {-2, -1}</span>
-<span class="source-line-no">037</span><span id="line-37">        };</span>
-<span class="source-line-no">038</span><span id="line-38"></span>
-<span class="source-line-no">039</span><span id="line-39">        for (int[] move : knightMoves) {</span>
-<span class="source-line-no">040</span><span id="line-40">            Case targetCase = plateau.getCase(currentCase.getX() + move[0], currentCase.getY() + move[1]);</span>
-<span class="source-line-no">041</span><span id="line-41">            if (targetCase != null) {</span>
-<span class="source-line-no">042</span><span id="line-42">                Piece targetPiece = targetCase.getPiece();</span>
-<span class="source-line-no">043</span><span id="line-43">                // Ajouter la case si elle est vide ou contient une pièce ennemie</span>
-<span class="source-line-no">044</span><span id="line-44">                if (targetPiece == null || targetPiece.getColor() != piece.getColor()) {</span>
-<span class="source-line-no">045</span><span id="line-45">                    moves.add(new int[]{targetCase.getX(), targetCase.getY()});</span>
-<span class="source-line-no">046</span><span id="line-46">                }</span>
-<span class="source-line-no">047</span><span id="line-47">            }</span>
-<span class="source-line-no">048</span><span id="line-48">        }</span>
-<span class="source-line-no">049</span><span id="line-49"></span>
-<span class="source-line-no">050</span><span id="line-50">        // Ajoute les mouvements de la stratégie décorée, si elle existe</span>
-<span class="source-line-no">051</span><span id="line-51">        if (wrapped != null) {</span>
-<span class="source-line-no">052</span><span id="line-52">            moves.addAll(wrapped.getValidMoves(piece, currentCase, plateau));</span>
-<span class="source-line-no">053</span><span id="line-53">        }</span>
-<span class="source-line-no">054</span><span id="line-54"></span>
-<span class="source-line-no">055</span><span id="line-55">        return moves;</span>
-<span class="source-line-no">056</span><span id="line-56">    }</span>
-<span class="source-line-no">057</span><span id="line-57">}</span>
+<span class="source-line-no">019</span><span id="line-19">        super(wrapped);</span>
+<span class="source-line-no">020</span><span id="line-20">        this.wrapped = wrapped;</span>
+<span class="source-line-no">021</span><span id="line-21">    }</span>
+<span class="source-line-no">022</span><span id="line-22"></span>
+<span class="source-line-no">023</span><span id="line-23">    /**</span>
+<span class="source-line-no">024</span><span id="line-24">     * Récupère les mouvements valides pour une pièce.</span>
+<span class="source-line-no">025</span><span id="line-25">     * @param piece La pièce à évaluer.</span>
+<span class="source-line-no">026</span><span id="line-26">     * @param currentCase La case actuelle de la pièce.</span>
+<span class="source-line-no">027</span><span id="line-27">     * @param plateau Le plateau de jeu.</span>
+<span class="source-line-no">028</span><span id="line-28">     * @return La liste des mouvements valides.</span>
+<span class="source-line-no">029</span><span id="line-29">     */</span>
+<span class="source-line-no">030</span><span id="line-30">    @Override</span>
+<span class="source-line-no">031</span><span id="line-31">    public List&lt;int[]&gt; getValidMoves(Piece piece, Case currentCase, Plateau plateau) {</span>
+<span class="source-line-no">032</span><span id="line-32">        List&lt;int[]&gt; moves = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">033</span><span id="line-33"></span>
+<span class="source-line-no">034</span><span id="line-34">        // Déplacements en "L" du cavalier (8 directions spécifiques)</span>
+<span class="source-line-no">035</span><span id="line-35">        int[][] knightMoves = {</span>
+<span class="source-line-no">036</span><span id="line-36">            {-2, 1}, {-1, 2}, {1, 2}, {2, 1},</span>
+<span class="source-line-no">037</span><span id="line-37">            {2, -1}, {1, -2}, {-1, -2}, {-2, -1}</span>
+<span class="source-line-no">038</span><span id="line-38">        };</span>
+<span class="source-line-no">039</span><span id="line-39"></span>
+<span class="source-line-no">040</span><span id="line-40">        for (int[] move : knightMoves) {</span>
+<span class="source-line-no">041</span><span id="line-41">            Case targetCase = plateau.getCase(currentCase.getX() + move[0], currentCase.getY() + move[1]);</span>
+<span class="source-line-no">042</span><span id="line-42">            if (targetCase != null) {</span>
+<span class="source-line-no">043</span><span id="line-43">                Piece targetPiece = targetCase.getPiece();</span>
+<span class="source-line-no">044</span><span id="line-44">                // Ajouter la case si elle est vide ou contient une pièce ennemie</span>
+<span class="source-line-no">045</span><span id="line-45">                if (targetPiece == null || targetPiece.getColor() != piece.getColor()) {</span>
+<span class="source-line-no">046</span><span id="line-46">                    moves.add(new int[]{targetCase.getX(), targetCase.getY()});</span>
+<span class="source-line-no">047</span><span id="line-47">                }</span>
+<span class="source-line-no">048</span><span id="line-48">            }</span>
+<span class="source-line-no">049</span><span id="line-49">        }</span>
+<span class="source-line-no">050</span><span id="line-50"></span>
+<span class="source-line-no">051</span><span id="line-51">        // Ajoute les mouvements de la stratégie décorée, si elle existe</span>
+<span class="source-line-no">052</span><span id="line-52">        if (wrapped != null) {</span>
+<span class="source-line-no">053</span><span id="line-53">            moves.addAll(wrapped.getValidMoves(piece, currentCase, plateau));</span>
+<span class="source-line-no">054</span><span id="line-54">        }</span>
+<span class="source-line-no">055</span><span id="line-55"></span>
+<span class="source-line-no">056</span><span id="line-56">        return moves;</span>
+<span class="source-line-no">057</span><span id="line-57">    }</span>
+<span class="source-line-no">058</span><span id="line-58">}</span>
 
 
 
