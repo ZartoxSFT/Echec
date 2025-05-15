@@ -3,8 +3,7 @@ package model;
 import java.awt.Point;
 import java.util.*;
 
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
+import view.UI;
 
 
 /**
@@ -188,7 +187,7 @@ public class Plateau {
      * @param pawn Le pion à promouvoir.
      * @param pieces La liste des pièces sur le plateau.
      */
-    public void promotePawn(Piece pawn, List<Piece> pieces) {
+    public void promotePawn(Piece pawn, List<Piece> pieces, int choiceIndex) {
         System.out.println("Promotion du pion !");
     
         if (!(pawn instanceof model.pieces.Pawn)) return;
@@ -198,26 +197,9 @@ public class Plateau {
             System.err.println("Erreur : la case du pion est introuvable !");
             return;
         }
-        boolean color = pawn.getColor();
     
         String[] options = {"Reine", "Tour", "Fou", "Cavalier"};
-        ImageIcon[] icons = {
-            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "queen.png"),
-            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "rook.png"),
-            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "bishop.png"),
-            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "knight.png")
-        };
-    
-        int choiceIndex = JOptionPane.showOptionDialog(
-            null,
-            "Choisissez une pièce pour la promotion :",
-            "Promotion",
-            JOptionPane.DEFAULT_OPTION,
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            icons,
-            icons[0]
-        );
+
     
         if (choiceIndex == -1) choiceIndex = 0;
     

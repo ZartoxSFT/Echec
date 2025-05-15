@@ -16,6 +16,7 @@ import model.Move;
 import model.Piece;
 import model.Plateau;
 import model.pieces.King;
+import view.UI;
 import model.Case;
 import model.GameState;
 
@@ -132,7 +133,8 @@ public class Core extends Observable implements Runnable {
         // Gestion de la promotion des pions
         if (piece instanceof model.pieces.Pawn) {
             if ((piece.getColor() && newCase.getX() == 0) || (!piece.getColor() && newCase.getX() == 7)) {
-                plateau.promotePawn(piece, plateau.getPieces());
+                int choiceIndex = UI.setIcons(piece.getColor());
+                plateau.promotePawn(piece, plateau.getPieces(), choiceIndex);
             }
         }
 

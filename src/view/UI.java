@@ -581,6 +581,27 @@ public class UI extends JFrame implements GameUI {
         }
     }
 
+    public static int setIcons(boolean color){
+        ImageIcon[] icons = {
+            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "queen.png"),
+            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "rook.png"),
+            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "bishop.png"),
+            new ImageIcon("src/img/" + (color ? "w_" : "b_") + "knight.png")
+        };
+    
+        int choiceIndex = JOptionPane.showOptionDialog(
+            null,
+            "Choisissez une pièce pour la promotion :",
+            "Promotion",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            icons,
+            icons[0]
+        );
+        return choiceIndex;
+    }
+
     @Override
     public void displayBoard() {
         update(core, null);
