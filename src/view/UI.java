@@ -59,7 +59,6 @@ public class UI extends JFrame implements GameUI {
             crossIcon = new ImageIcon(ASSETS_PATH + "capture.png");
             circleIcon = new ImageIcon(ASSETS_PATH + "s_move.png");
             
-            // Redimensionner les icônes avec une taille plus petite pour éviter de masquer les pièces
             dotIcon = resizeImageIcon(dotIcon, CASE_SIZE/2, CASE_SIZE/2);
             crossIcon = resizeImageIcon(crossIcon, CASE_SIZE/2, CASE_SIZE/2);
             circleIcon = resizeImageIcon(circleIcon, CASE_SIZE/2, CASE_SIZE/2);
@@ -114,7 +113,6 @@ public class UI extends JFrame implements GameUI {
                 }
             }
         }
-        // Forcer le rafraîchissement de l'affichage
         revalidate();
         repaint();
     }
@@ -150,7 +148,6 @@ public class UI extends JFrame implements GameUI {
             moveIndicators[x][y].setIcon(indicator);
         }
         
-        // Forcer le rafraîchissement de l'affichage
         revalidate();
         repaint();
     }
@@ -184,24 +181,20 @@ public class UI extends JFrame implements GameUI {
         build();
         setVisible(true);
 
-        // Afficher la boîte de dialogue de sélection du mode
         GameModeDialog dialog = new GameModeDialog(this);
         dialog.setVisible(true);
         int minutes = dialog.getSelectedMinutes();
 
-        // Configurer l'IA si nécessaire
         if (dialog.isAIGame()) {
             core.setAI(true, dialog.getAIDifficulty(), dialog.isAIWhite());
         }
 
         if (minutes > 0) {
-            // Créer et configurer le timer avec un callback pour la fin du temps
             gameTimer = new GameTimer(minutes, (isWhiteTimeout) -> {
                 String message = "Temps écoulé ! Les " + (isWhiteTimeout ? "Noirs" : "Blancs") + " gagnent !";
                 showGameEndDialog(message);
             });
 
-            // Ajouter le timer au panel du haut
             JPanel topPanel = (JPanel) getContentPane().getComponent(0);
             if (topPanel.getLayout() instanceof BoxLayout) {
                 JPanel timerPanel = (JPanel) topPanel.getComponent(0);
@@ -214,7 +207,6 @@ public class UI extends JFrame implements GameUI {
             }
         }
 
-        // Forcer la mise à jour initiale de l'affichage
         update(core, null);
         pack();
     }
@@ -358,7 +350,6 @@ public class UI extends JFrame implements GameUI {
             for (int j = 0; j < 8; j++) {
                 initializeSquare(i, j);
 
-                // Ajouter le gestionnaire d'événements
                 final int row = i;
                 final int col = j;
                 squares[i][j].addMouseListener(new MouseAdapter() {
@@ -372,7 +363,6 @@ public class UI extends JFrame implements GameUI {
             }
         }
 
-        // Panel principal qui contient les coordonnées et le plateau
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
 
         // Ajout des lettres (a-h) en haut
@@ -455,7 +445,7 @@ public class UI extends JFrame implements GameUI {
             return;
         }
 
-        clearMoveIndicators(); // Effacer les indicateurs précédents
+        clearMoveIndicators();
 
         if (selectedPiece != null) {
             System.out.println("Déplacement de la pièce à (" + x + ", " + y + ")");
@@ -483,8 +473,7 @@ public class UI extends JFrame implements GameUI {
     public void update(Observable o, Object arg) {
         SwingUtilities.invokeLater(() -> {
             clearMoveIndicators();
-            
-            // Réinitialiser toutes les cases à leur couleur normale et masquer les overlays d'échec
+
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
                     squares[i][j].setBackground((i + j) % 2 == 0 ? LIGHT_SQUARE : DARK_SQUARE);
@@ -554,7 +543,6 @@ public class UI extends JFrame implements GameUI {
                 labelTour.setText("Tour : " + (core.isWhiteTurn() ? "Blancs" : "Noirs"));
             }
 
-            // Réafficher les indicateurs si une pièce est sélectionnée
             if (selectedPiece != null) {
                 showMoveIndicators(selectedPiece);
             }
@@ -562,7 +550,6 @@ public class UI extends JFrame implements GameUI {
     }
 
     private void showGameEndDialog(String message) {
-        // Arrêter le timer
         if (gameTimer != null) {
             gameTimer.stopTimer();
         }
@@ -585,7 +572,6 @@ public class UI extends JFrame implements GameUI {
             core.initGame();
             UI newUI = new UI(core);
             newUI.initialize();
-            // Forcer la mise à jour de l'affichage initial
             newUI.update(core, null);
             newUI.pack();
             newUI.setLocationRelativeTo(null);
@@ -597,7 +583,6 @@ public class UI extends JFrame implements GameUI {
 
     @Override
     public void displayBoard() {
-        // Forcer la mise à jour de l'affichage
         update(core, null);
         revalidate();
         repaint();

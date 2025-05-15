@@ -74,7 +74,7 @@ public class Core extends Observable implements Runnable {
     public void movePiece(Piece piece, Case newCase) {
         if (piece == null || newCase == null) return;
 
-        // Vérifier si c'est le bon tour
+
         if (piece.getColor() != plateau.isCurrentPlayerWhite()) {
             System.out.println("Ce n'est pas à ton tour !");
             return;
@@ -82,7 +82,6 @@ public class Core extends Observable implements Runnable {
 
         Case oldCase = piece.getCurrentCase();
         
-        // Vérifier si le mouvement est valide
         boolean isValidMove = false;
         List<int[]> validMoves = plateau.filterValidMoves(piece);
         for (int[] move : validMoves) {
@@ -115,7 +114,6 @@ public class Core extends Observable implements Runnable {
 
         // Vérifier si le roi est toujours en échec après le mouvement
         if (plateau.isKingInCheck(plateau.isCurrentPlayerWhite())) {
-            // Annuler le mouvement
             newCase.setPiece(capturedPiece);
             oldCase.setPiece(piece);
             piece.setCurrentCase(oldCase);
@@ -357,10 +355,8 @@ public class Core extends Observable implements Runnable {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             GameState gameState = (GameState) ois.readObject();
             
-            // Créer un nouveau plateau
             plateau = new Plateau();
-            
-            // Réinitialiser le plateau
+
             plateau.getPieces().clear();
             for (int i = 0; i < 8; i++) {
                 for (int j = 0; j < 8; j++) {
@@ -368,7 +364,6 @@ public class Core extends Observable implements Runnable {
                 }
             }
             
-            // Restaurer les pièces
             for (Piece piece : gameState.getPieces()) {
                 plateau.getPieces().add(piece);
                 Case currentCase = piece.getCurrentCase();
@@ -379,12 +374,10 @@ public class Core extends Observable implements Runnable {
                 }
             }
             
-            // Restaurer l'état du jeu
             plateau.setCurrentPlayerWhite(gameState.isCurrentPlayerWhite());
             plateau.setHasMoved(new HashMap<>(gameState.getHasMoved()));
             plateau.setEnPassantTarget(gameState.getEnPassantTarget());
             
-            // Restaurer l'état de l'IA si nécessaire
             this.isAIGame = gameState.isAIGame();
             if (this.isAIGame) {
                 setAI(true, gameState.getAIDifficulty(), gameState.isAIWhite());
@@ -392,7 +385,6 @@ public class Core extends Observable implements Runnable {
                 setAI(false, 0, false);
             }
             
-            // Notifier les observateurs
             setChanged();
             notifyObservers();
         }
